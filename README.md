@@ -73,10 +73,11 @@ export default tseslint.config([
 1. Set up with Cloudflare Pages React template.
 2. Replace the worker route with Hono.
 
-Add this to the top of the `worker/index.ts` file:
+If you encounter issues with vite locating the `Env` type, add this to the top of the `worker/index.ts` file:
+
 ```ts
 /// <reference types="../worker-configuration.d.ts" />
-````
+```
 
 3. Set up Drizzle database
 

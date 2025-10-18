@@ -1,7 +1,6 @@
 import { hc } from "hono/client";
 import { useState } from "react";
 import type { AppType } from "../worker/index";
-import "./App.css";
 import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
@@ -29,7 +28,9 @@ function App() {
           />
         </a>
       </div>
-      <h1>Vite + React + Cloudflare</h1>
+      <h1 className="text-3xl font-bold font-mono">
+        Vite + React + Cloudflare
+      </h1>
       <div className="card">
         <button
           onClick={() => setCount((count) => count + 1)}
