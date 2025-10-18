@@ -1,4 +1,5 @@
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { relations } from "drizzle-orm";
 
 export const books = sqliteTable("books", {
   id: integer().primaryKey({ autoIncrement: true }),
@@ -39,3 +40,22 @@ export const loans = sqliteTable(
   },
   (table) => [index("idx_active_loans").on(table.qrCodeId, table.returnedAt)],
 );
+
+export const booksRelations = relations(books, ({ many }) => ({
+  bookCopies: many(bookCopies),
+}));
+
+export const bookCopiesRelations = relations(bookCopies, ({ one, many }) => ({
+  book: one(books, {
+    fields: [bookCopies.bookId],
+    references: [books.id],
+  }),
+  loans: many(loans),
+}));
+
+export const loansRelations = relations(loans, ({ one }) => ({
+  bookCopy: one(bookCopies, {
+    fields: [loans.qrCodeId],
+    references: [bookCopies.qrCodeId],
+  }),
+}));
