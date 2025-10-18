@@ -81,11 +81,17 @@ If you encounter issues with vite locating the `Env` type, add this to the top o
 
 3. Set up Drizzle database
 
+Generate the seed data
+
+```shell
+bun run ./script/generate-seed.ts
+```
+
 ```shell
 bunx drizzle-kit generate # Generates the drizzle schema in the migrations folder
 rm -rf .wrangler/state
 bunx wrangler d1 migrations apply community-library-db --local
 
 # Seed with data
-wrangler d1 execute community-library-db --local --file=./scripts/seed.sql
+wrangler d1 execute community-library-db --local --file=./scripts/new-seed.sql
 ```
