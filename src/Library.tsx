@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { hc } from "hono/client";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import type { AppType } from "../worker/index";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);

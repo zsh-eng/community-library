@@ -1,15 +1,11 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { hc } from "hono/client";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import type { AppType } from "../worker/index";
+import { BookImage } from "./components/BookImage";
+import { Separator } from "./components/ui/separator";
+import { cn } from "./lib/utils";
+import { ArrowLeft } from "lucide-react";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
@@ -102,76 +98,81 @@ function Book() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Link to="/" className="text-blue-600 hover:underline mb-6 inline-block">
-        ← Back to Library
+      <Link
+        to="/"
+        className="text-muted-foreground hover:text-primary transition duration-300 hover:scale-105 group"
+      >
+        <ArrowLeft className="group-hover:-translate-x-1 transition" />
       </Link>
 
       <div className="max-w-4xl mx-auto">
-        {book.imageUrl && (
-          <div className="mb-8 flex justify-center">
-            <img
-              src={book.imageUrl}
-              alt={book.title}
-              className="max-w-md w-full h-auto object-cover rounded-lg shadow-lg"
-            />
-          </div>
-        )}
+        {book.imageUrl && <BookImage src={book.imageUrl} alt={book.title} />}
 
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">{book.title}</h1>
-          <p className="text-2xl text-muted-foreground mb-4">{book.author}</p>
+        <div className="mt-16 mb-8 px-4">
+          <h1 className="text-2xl font-bold font-serif">{book.title}</h1>
+          <p className="text-xl italic font-serif">{book.author}</p>
+          <Separator className="!w-16 my-2 bg-primary" />
 
           {book.isbn && (
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-xs text-muted-foreground mb-8">
               ISBN: {book.isbn}
             </p>
           )}
 
           {book.description && (
-            <div className="prose max-w-none">
-              <p className="text-lg leading-relaxed">{book.description}</p>
+            <div className="prose max-w-none font-serif">
+              <p className="text-base leading-relaxed">{book.description}</p>
+            </div>
+          )}
+
+          <h2 className="mt-12 mb-8 text-xl font-bold font-serif italic">
+            Copies
+          </h2>
+
+          {book.bookCopies.length === 0 ? (
+            <p className="text-muted-foreground">
+              No copies available in the library.
+            </p>
+          ) : (
+            <div className="space-y-0 border border-border">
+              {book.bookCopies.map((copy) => {
+                const isAvailable = copy.loans.length === 0;
+                const currentLoan = copy.loans.find((loan) => !loan.returnedAt);
+                const dueDate = currentLoan
+                  ? new Date(currentLoan.dueDate).toLocaleDateString()
+                  : null;
+
+                return (
+                  <div
+                    key={copy.qrCodeId}
+                    className={cn(
+                      "flex items-center border-b border-border last:border-b-0 transition-all duration-200 outline outline-transparent hover:outline-primary hover:translate-x-2 font-serif",
+                      !isAvailable && "text-muted-foreground",
+                    )}
+                  >
+                    <div className="flex items-center flex-1 py-4 px-6">
+                      <span className="text-base">{copy.copyNumber}</span>
+                      <div className="mx-6 h-8 w-px bg-border"></div>
+
+                      {isAvailable && (
+                        <span className="text-base">Available</span>
+                      )}
+
+                      {!isAvailable && (
+                        <>
+                          <span className="text-base">
+                            Due on{" "}
+                            {<span className="underline">{dueDate}</span>}{" "}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Available Copies</CardTitle>
-            <CardDescription>
-              {book.bookCopies.length}{" "}
-              {book.bookCopies.length === 1 ? "copy" : "copies"} in the library
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {book.bookCopies.length === 0 ? (
-              <p className="text-muted-foreground">
-                No copies available in the library.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {book.bookCopies.map((copy) => {
-                  const isAvailable = copy.loans.length === 0;
-                  return (
-                    <div
-                      key={copy.qrCodeId}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">Copy #{copy.copyNumber}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Status: {copy.status || "available"}
-                        </p>
-                      </div>
-                      <Badge variant={isAvailable ? "default" : "secondary"}>
-                        {isAvailable ? "Available" : "Borrowed"}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
