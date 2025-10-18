@@ -1,12 +1,13 @@
-export default {
-  fetch(request) {
-    const url = new URL(request.url);
+import { Hono } from "hono";
 
-    if (url.pathname.startsWith("/api/")) {
-      return Response.json({
-        name: "Cloudflare",
-      });
-    }
-		return new Response(null, { status: 404 });
-  },
-} satisfies ExportedHandler<Env>;
+const app = new Hono();
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const route = app.get("/api", (c) => {
+  return c.json({
+    name: "Cloudflare",
+  });
+});
+
+export default app;
+export type AppType = typeof route;
