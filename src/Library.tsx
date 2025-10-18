@@ -112,8 +112,8 @@ function Library() {
           <h1 className="text-3xl font-serif font-bold mb-4">Library</h1>
 
           {/* Sticky Search Bar */}
-          <div className="sticky top-0 z-10 bg-background border-b border-border sm:-mx-6 lg:-mx-8 sm:px-6 lg:px-8">
-            <div className="py-4">
+          <div className="sticky top-8 z-10 bg-background border-b border-border sm:-mx-6 lg:-mx-8 sm:px-6 lg:px-8">
+            <div className="">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
@@ -128,7 +128,7 @@ function Library() {
           </div>
 
           {/* Sticky Book Count */}
-          <div className="sticky top-[73px] z-10 bg-background border-b border-border sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+          <div className="sticky top-20 z-10 bg-background border-b border-border sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
             <div className="py-3">
               <p className="text-sm text-muted-foreground font-medium">
                 {filteredBooks.length}{" "}
