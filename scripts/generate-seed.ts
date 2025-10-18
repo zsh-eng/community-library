@@ -22,9 +22,9 @@ interface Loan {
   telegramUserId: number;
   telegramUsername: string;
   borrowedAt: string;
-  dueDate: string;
-  returnedAt: string | null;
-  lastReminderSent: string | null;
+  dueDate: string; // Always set - typically 14 days after borrowedAt
+  returnedAt: string | null; // NULL for outstanding loans
+  lastReminderSent: string | null; // NULL for returned loans
 }
 
 // Sample usernames for loan generation
@@ -104,9 +104,7 @@ function generateCopies(bookCount: number): Copy[] {
       const qrCodeId = generateQrCodeId(bookId, copyNum);
       // Last copy of each book might be borrowed
       const status =
-        copyNum === numCopies && Math.random() > 0.5
-          ? "borrowed"
-          : "available";
+        copyNum === numCopies && Math.random() > 0.5 ? "borrowed" : "available";
 
       copies.push({
         qrCodeId,
@@ -148,23 +146,40 @@ function generateLoans(copies: Copy[]): Loan[] {
       let username: string;
       do {
         username = randomElement(SAMPLE_USERNAMES);
-      } while (usedUsernames.has(`${copy.qrCodeId}-${username}`) && usedUsernames.size < SAMPLE_USERNAMES.length);
+      } while (
+        usedUsernames.has(`${copy.qrCodeId}-${username}`) &&
+        usedUsernames.size < SAMPLE_USERNAMES.length
+      );
       usedUsernames.add(`${copy.qrCodeId}-${username}`);
 
       const userId = randomUserId();
 
       // Generate dates based on loan position
       // Older loans are further in the past
-      const daysAgoBorrowed = isLastLoan ? randomInt(5, 15) : randomInt(20 + i * 15, 60 + i * 15);
+      const daysAgoBorrowed = isLastLoan
+        ? randomInt(5, 15)
+        : randomInt(20 + i * 15, 60 + i * 15);
       const daysAgoReturned = isLastLoan
         ? randomInt(3, daysAgoBorrowed - 2)
         : randomInt(2, daysAgoBorrowed - 15);
 
+      // borrowedAt: when the book was borrowed (in the past)
       const borrowedAt = `strftime('%s', 'now', '-${daysAgoBorrowed} days')`;
-      const dueDate = `strftime('%s', 'now', '-${daysAgoBorrowed - 14} days')`;
+
+      // dueDate: ALWAYS set to 14 days after borrowedAt (never NULL)
+      // Calculate days from now: if borrowed 10 days ago, due date is 10-14 = -4 days ago (4 days in future)
+      const daysFromNowToDue = daysAgoBorrowed - 14;
+      const dueDate =
+        daysFromNowToDue >= 0
+          ? `strftime('%s', 'now', '-${daysFromNowToDue} days')`
+          : `strftime('%s', 'now', '+${Math.abs(daysFromNowToDue)} days')`;
+
+      // returnedAt: NULL for outstanding loans, otherwise when the book was returned
       const returnedAt = isOutstanding
         ? "NULL"
         : `strftime('%s', 'now', '-${daysAgoReturned} days')`;
+
+      // lastReminderSent: NULL for returned loans, otherwise when last reminder was sent
       const lastReminderSent = isOutstanding
         ? `strftime('%s', 'now', '-${randomInt(1, 3)} days')`
         : "NULL";
@@ -236,7 +251,7 @@ function main() {
   console.log(`- Copies: ${copies.length}`);
   console.log(`- Loans: ${loans.length}`);
   console.log(
-    `- Outstanding loans: ${loans.filter((l) => l.returnedAt === "NULL").length}`
+    `- Outstanding loans: ${loans.filter((l) => l.returnedAt === "NULL").length}`,
   );
 }
 

@@ -93,5 +93,6 @@ rm -rf .wrangler/state
 bunx wrangler d1 migrations apply community-library-db --local
 
 # Seed with data
-wrangler d1 execute community-library-db --local --file=./scripts/new-seed.sql
+# DO NOT use bunx at this point in time (as of 18 October 2025, there are weird bugs when using bunx to run the SQL file)
+pnpm dlx wrangler d1 execute community-library-db --local --file=./scripts/new-seed.sql
 ```
