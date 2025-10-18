@@ -1,69 +1,15 @@
-import { hc } from "hono/client";
-import { useState } from "react";
-import type { AppType } from "../worker/index";
-import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-
-const client = hc<AppType>(import.meta.env.BASE_URL);
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Library from "./Library";
+import Book from "./Book";
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [name, setName] = useState("unknown");
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-        <a href="https://workers.cloudflare.com/" target="_blank">
-          <img
-            src={cloudflareLogo}
-            className="logo cloudflare"
-            alt="Cloudflare logo"
-          />
-        </a>
-      </div>
-      <h1 className="text-3xl font-bold font-mono">
-        Vite + React + Cloudflare
-      </h1>
-      <div className="card">
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          aria-label="increment"
-        >
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <div className="card">
-        <button
-          onClick={async () => {
-            const res = await client.api.$get();
-            const data = await res.json();
-            const usersRes = await client.api.users.$get();
-            const users = await usersRes.json();
-            console.log("users", users);
-            setName(data.name);
-          }}
-          aria-label="get name"
-        >
-          Name from API is: {name}
-        </button>
-        <p>
-          Edit <code>worker/index.ts</code> to change the name
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Library />} />
+        <Route path="/book/:id" element={<Book />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
