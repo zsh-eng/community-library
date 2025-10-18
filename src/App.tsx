@@ -46,6 +46,9 @@ function App() {
           onClick={async () => {
             const res = await client.api.$get();
             const data = await res.json();
+            const usersRes = await client.api.users.$get();
+            const users = await usersRes.json();
+            console.log("users", users);
             setName(data.name);
           }}
           aria-label="get name"

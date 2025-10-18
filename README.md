@@ -67,3 +67,18 @@ export default tseslint.config([
   },
 ])
 ```
+
+## Setup
+
+1. Set up with Cloudflare Pages React template.
+2. Replace the worker route with Hono.
+3. Set up Drizzle database
+
+```shell
+bunx drizzle-kit generate # Generates the drizzle schema in the migrations folder
+rm -rf .wrangler/state
+bunx wrangler d1 migrations apply community-library-db --local
+
+# Seed with data
+wrangler d1 execute community-library-db --local --file=./scripts/seed.sql
+```
