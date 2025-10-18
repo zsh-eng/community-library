@@ -6,7 +6,7 @@ import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 
-const client = hc<AppType>("http://localhost:5173");
+const client = hc<AppType>(import.meta.env.BASE_URL);
 
 function App() {
   const [count, setCount] = useState(0);

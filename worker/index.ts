@@ -1,3 +1,4 @@
+/// <reference types="../worker-configuration.d.ts" />
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./db/schema.ts";
