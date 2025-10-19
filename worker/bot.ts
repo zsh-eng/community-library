@@ -23,9 +23,6 @@ function escapeMarkdown(text: string): string {
   return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
 }
 
-/**
- * Format book details message for /book command
- */
 async function sendBookDetailsMessage(
   ctx: Context,
   bookDetails: Awaited<ReturnType<typeof getBookDetails>>,
@@ -44,10 +41,10 @@ async function sendBookDetailsMessage(
     })
     .join("\n");
 
-  const message = `📚 *${escapeMarkdown(bookDetails.title)}*
-by ${escapeMarkdown(bookDetails.author)}
+  const plainMessage = `📚 ${bookDetails.title}
+by ${bookDetails.author}
 
-${escapeMarkdown(bookDetails.description)}
+${bookDetails.description}
 
 📊 Availability: ${bookDetails.availableCopies} of ${bookDetails.totalCopies} ${bookDetails.totalCopies === 1 ? "copy" : "copies"} available
 
@@ -55,6 +52,12 @@ Copies:
 ${copiesText}
 
 💡 To borrow, scan the QR code on the physical book`;
+
+  // Apply formatting after escaping
+  const message = escapeMarkdown(plainMessage).replace(
+    escapeMarkdown(`📚 ${bookDetails.title}`),
+    `📚 *${escapeMarkdown(bookDetails.title)}*`,
+  );
 
   if (bookDetails.imageUrl) {
     await ctx.replyWithPhoto(bookDetails.imageUrl, {
@@ -246,7 +249,9 @@ Status: ${isAvailable ? "✅ Available" : isBorrowedByCurrentUser ? "📖 Borrow
           copyDetails.currentLoan!.dueDate,
         ).toLocaleDateString();
         await ctx.reply(
-          `${message}\n\n📅 This book is currently borrowed and due back on ${dueDate}\\.`,
+          escapeMarkdown(
+            `${message}\n\n📅 This book is currently borrowed and due back on ${dueDate}\\.`,
+          ),
           { parse_mode: "MarkdownV2" },
         );
         return;
@@ -387,5 +392,21 @@ Thank you for returning the book\\!`,
     }
   });
 
+  bot.on("message", async (ctx) => {
+    const query = ctx.message?.text?.trim();
+    if (!query || query.startsWith("/") || query.length < 3) {
+      return;
+    }
+
+    try {
+      const results = await searchBooks(db, query, 10);
+      await sendSearchResultsMessage(ctx, results, query);
+    } catch (error) {
+      console.error("Error searching books:", error);
+      await ctx.reply(
+        "❌ An error occurred while searching. Please try again.",
+      );
+    }
+  });
   return webhookCallback(bot, "cloudflare-mod")(c.req.raw);
 });
