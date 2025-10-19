@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import { eq, isNull } from "drizzle-orm";
 import * as schema from "./db/schema.ts";
+import { botApp } from "./bot.ts";
 
 const app = new Hono<{
   Bindings: Env;
@@ -55,7 +56,8 @@ const route = app
     }
 
     return c.json({ book });
-  });
+  })
+  .route("/bot", botApp);
 
 export default app;
 // For type inference in the client
