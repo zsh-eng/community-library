@@ -1,3 +1,4 @@
+import { CommandGroup } from "@grammyjs/commands";
 import { drizzle } from "drizzle-orm/d1";
 import { Bot, Context, InlineKeyboard, webhookCallback } from "grammy";
 import { Hono } from "hono";
@@ -157,30 +158,44 @@ Scan a QR code on any book to borrow it!`,
   /**
    * /book <isbn> - View book details
    */
-  bot.command("book", async (ctx: Context) => {
-    const isbn = ctx.match?.toString().trim();
+  // Create a command group for book-related commands
+  const bookCommands = new CommandGroup();
+  // Use regex to handle both /book <isbn> and /book<isbn> formats
+  bookCommands.command(
+    /book\s*(.+)/,
+    "View book details",
+    async (ctx: Context) => {
+      // Extract ISBN from the message text directly
+      const match = ctx.msg?.text?.match(/\/book\s*(.+)/);
+      const isbn = match && match[1] ? match[1].trim() : "";
 
-    if (!isbn) {
-      await ctx.reply("Usage: /book <isbn>\n\nExample: /book 9780674430006");
-      return;
-    }
-
-    try {
-      const bookDetails = await getBookDetails(db, isbn);
-
-      if (!bookDetails) {
-        await ctx.reply("❌ Book not found.");
+      if (!isbn) {
+        await ctx.reply(
+          "Usage: /book <isbn> or /book<isbn>\n\nExample: /book 9780674430006",
+        );
         return;
       }
 
-      await sendBookDetailsMessage(ctx, bookDetails);
-    } catch (error) {
-      console.error("Error fetching book details:", error);
-      await ctx.reply(
-        "❌ An error occurred while fetching book details. Please try again.",
-      );
-    }
-  });
+      try {
+        const bookDetails = await getBookDetails(db, isbn);
+
+        if (!bookDetails) {
+          await ctx.reply("❌ Book not found.");
+          return;
+        }
+
+        await sendBookDetailsMessage(ctx, bookDetails);
+      } catch (error) {
+        console.error("Error fetching book details:", error);
+        await ctx.reply(
+          "❌ An error occurred while fetching book details. Please try again.",
+        );
+      }
+    },
+  );
+
+  // Register the command group with the bot
+  bot.use(bookCommands);
 
   /**
    * /borrow <qr_code_id> - View book copy details (borrowing flow to be implemented)
