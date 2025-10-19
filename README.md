@@ -96,3 +96,10 @@ bunx wrangler d1 migrations apply community-library-db --local
 # DO NOT use bunx at this point in time (as of 18 October 2025, there are weird bugs when using bunx to run the SQL file)
 pnpm dlx wrangler d1 execute community-library-db --local --file=./scripts/new-seed.sql
 ```
+
+## Telegram Bot
+
+1. Follow the instructions in the [Grammy Docs](https://grammy.dev/hosting/cloudflare-workers-nodejs).
+2. Create a new bot and generate the bot token, retrieve the bot info.
+3. Add the bot token and bot info to `.dev.vars` (or `wrangler secrets` for the production credentials).
+4. If you're using Cloudflare Tunnel for local bot development, remember to create a `.env` file with the `DEV_HOST` so that vite can accept the connections.
