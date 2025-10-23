@@ -246,14 +246,16 @@ export function formatMyBooksMessage(activeLoans: LoanDetails[]): string {
       const isOverdue = new Date(loan.dueDate) < new Date();
       const overdueIndicator = isOverdue ? " ⚠️ OVERDUE" : "";
 
-      return `${index + 1}\\. *${escapeMarkdown(loan.title)}*
-   by ${escapeMarkdown(loan.author)}
+      return `${index + 1}. ${loan.title}
+   by ${loan.author}
    Copy #${loan.copyNumber}
    Due: ${dueDate}${overdueIndicator}`;
     })
     .join("\n\n");
 
-  const message = `📚 Your borrowed books \\(${activeLoans.length}\\):\n\n${loanText}\n\n💡 Scan the QR code to return a book`;
+  const message = escapeMarkdown(
+    `📚 Your borrowed books (${activeLoans.length}):\n\n${loanText}\n\n💡 Scan the QR code to return a book`,
+  );
 
   return message;
 }
