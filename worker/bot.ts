@@ -8,7 +8,6 @@ import {
   BOOK_NOT_FOUND,
   BOOK_USAGE,
   BORROW_SUCCESS,
-  BORROW_USAGE,
   formatBookCopyBorrowedMessage,
   formatBookCopyDetailsMessage,
   formatBookDetailsMessage,
@@ -49,9 +48,75 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
 
   /**
    * /start - Welcome message
+   *
+   * If the user sends a QR code, the message is a deeplink of the form
+   * https://t.me/your_bot_name?start=borrow_BOOK_ID
+   *
+   * This allows us to keep the borrowing of books slightly opaque
+   * (there's no specific bot command, the user needs to scan the QR code)
    */
   bot.command("start", async (ctx: Context) => {
     await ctx.reply(WELCOME_MESSAGE);
+
+    const hiddenQuery = ctx.match?.toString().trim();
+    if (!hiddenQuery) {
+      return;
+    }
+
+    const [command, qrCodeId] = hiddenQuery.split("_");
+    if (command !== "borrow") {
+      return;
+    }
+
+    if (!qrCodeId) {
+      return;
+    }
+
+    try {
+      const copyDetails = await getBookCopyDetails(db, qrCodeId);
+
+      if (!copyDetails) {
+        await ctx.reply(BOOK_COPY_NOT_FOUND);
+        return;
+      }
+
+      // Determine availability state
+      const isAvailable = !copyDetails.currentLoan;
+      const isBorrowedByCurrentUser =
+        copyDetails.currentLoan?.telegramUserId === ctx.from?.id;
+
+      // Add inline keyboard (borrowing flow buttons to be implemented in Phase 2)
+      const keyboard = new InlineKeyboard();
+
+      if (isAvailable) {
+        keyboard.text("📚 Borrow this book", `borrow:${qrCodeId}`);
+      } else if (isBorrowedByCurrentUser) {
+        keyboard.text("✅ Return this book", `return:${qrCodeId}`);
+      } else {
+        // Book borrowed by someone else - no action available
+        const message = formatBookCopyBorrowedMessage(copyDetails);
+        await ctx.reply(message, { parse_mode: "MarkdownV2" });
+        return;
+      }
+
+      const message = formatBookCopyDetailsMessage(copyDetails);
+
+      if (copyDetails.book.imageUrl) {
+        await ctx.replyWithPhoto(copyDetails.book.imageUrl, {
+          caption: message,
+          parse_mode: "MarkdownV2",
+          reply_markup: keyboard,
+        });
+      } else {
+        await ctx.reply(message, {
+          parse_mode: "MarkdownV2",
+          reply_markup: keyboard,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching book copy details:", error);
+      await ctx.reply(GENERIC_ERROR);
+    }
   });
 
   /**
@@ -127,64 +192,6 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
 
   // Register the command group with the bot
   bot.use(bookCommands);
-
-  /**
-   * /borrow <qr_code_id> - View book copy details (borrowing flow to be implemented)
-   */
-  bot.command("borrow", async (ctx: Context) => {
-    const qrCodeId = ctx.match?.toString().trim();
-
-    if (!qrCodeId) {
-      await ctx.reply(BORROW_USAGE);
-      return;
-    }
-
-    try {
-      const copyDetails = await getBookCopyDetails(db, qrCodeId);
-
-      if (!copyDetails) {
-        await ctx.reply(BOOK_COPY_NOT_FOUND);
-        return;
-      }
-
-      // Determine availability state
-      const isAvailable = !copyDetails.currentLoan;
-      const isBorrowedByCurrentUser =
-        copyDetails.currentLoan?.telegramUserId === ctx.from?.id;
-
-      // Add inline keyboard (borrowing flow buttons to be implemented in Phase 2)
-      const keyboard = new InlineKeyboard();
-
-      if (isAvailable) {
-        keyboard.text("📚 Borrow this book", `borrow:${qrCodeId}`);
-      } else if (isBorrowedByCurrentUser) {
-        keyboard.text("✅ Return this book", `return:${qrCodeId}`);
-      } else {
-        // Book borrowed by someone else - no action available
-        const message = formatBookCopyBorrowedMessage(copyDetails);
-        await ctx.reply(message, { parse_mode: "MarkdownV2" });
-        return;
-      }
-
-      const message = formatBookCopyDetailsMessage(copyDetails);
-
-      if (copyDetails.book.imageUrl) {
-        await ctx.replyWithPhoto(copyDetails.book.imageUrl, {
-          caption: message,
-          parse_mode: "MarkdownV2",
-          reply_markup: keyboard,
-        });
-      } else {
-        await ctx.reply(message, {
-          parse_mode: "MarkdownV2",
-          reply_markup: keyboard,
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching book copy details:", error);
-      await ctx.reply(GENERIC_ERROR);
-    }
-  });
 
   /**
    * /mybooks - View currently borrowed books
