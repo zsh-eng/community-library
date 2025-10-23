@@ -91,6 +91,11 @@ export async function getBookDetails(db: Database, isbn: string) {
 /**
  * Borrow a book copy
  * Handles concurrency checks and loan creation
+ *
+ * NOTE: Cloudflare D1 does not support SQL transaction syntax (BEGIN TRANSACTION, SAVEPOINT).
+ * Instead, we rely on a unique partial index on (qrCodeId, returnedAt) WHERE returnedAt IS NULL
+ * to ensure that only one active loan can exist per book copy. If two users try to borrow
+ * simultaneously, the database constraint will cause one insert to fail, preventing race conditions.
  */
 export async function borrowBook(
   db: Database,
@@ -125,69 +130,84 @@ export async function borrowBook(
     };
   }
 
-  // 2. Create loan record
+  // 2. Create loan record with concurrency protection via unique constraint
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 14); // 2-week loan period
 
-  const [loan] = await db
-    .insert(loans)
-    .values({
-      qrCodeId,
-      telegramUserId,
-      telegramUsername: telegramUsername || null,
-      borrowedAt: new Date(),
-      dueDate,
-    })
-    .returning();
+  try {
+    const [loan] = await db
+      .insert(loans)
+      .values({
+        qrCodeId,
+        telegramUserId,
+        telegramUsername: telegramUsername || null,
+        borrowedAt: new Date(),
+        dueDate,
+      })
+      .returning();
 
-  return {
-    success: true,
-    loan,
-    book: bookCopy.book,
-    copyNumber: bookCopy.copyNumber,
-  };
+    return {
+      success: true,
+      loan,
+      book: bookCopy.book,
+      copyNumber: bookCopy.copyNumber,
+    };
+  } catch (error) {
+    // If unique constraint fails, someone borrowed it between our check and insert
+    console.error(error);
+    return {
+      success: false,
+      error: "This book was just borrowed by someone else. Please try again.",
+    };
+  }
 }
 
 /**
  * Return a book copy
  * Validates the user has an active loan for this book
+ *
+ * NOTE: See borrowBook() for explanation of D1 transaction limitations.
+ * We use conditional updates to ensure safe concurrent operations.
  */
 export async function returnBook(
   db: Database,
   qrCodeId: string,
   telegramUserId: number,
 ) {
-  // Find active loan for this book copy by this user
-  const activeLoan = await db.query.loans.findFirst({
-    where: and(
-      eq(loans.qrCodeId, qrCodeId),
-      eq(loans.telegramUserId, telegramUserId),
-      isNull(loans.returnedAt),
-    ),
-    with: {
-      bookCopy: {
-        with: {
-          book: true,
-        },
-      },
-    },
-  });
+  const returnedAt = new Date();
 
-  if (!activeLoan) {
+  // Conditional update: only update if returnedAt IS NULL
+  const result = await db
+    .update(loans)
+    .set({ returnedAt })
+    .where(
+      and(
+        eq(loans.qrCodeId, qrCodeId),
+        eq(loans.telegramUserId, telegramUserId),
+        isNull(loans.returnedAt),
+      ),
+    )
+    .returning();
+
+  if (result.length === 0) {
     return { success: false, error: "No active loan found for this book" };
   }
 
-  // Update loan record
-  await db
-    .update(loans)
-    .set({ returnedAt: new Date() })
-    .where(eq(loans.id, activeLoan.id));
+  const [updatedLoan] = result;
+
+  // Fetch book details
+  const bookCopy = await db.query.bookCopies.findFirst({
+    where: eq(bookCopies.qrCodeId, qrCodeId),
+    with: {
+      book: true,
+    },
+  });
 
   return {
     success: true,
-    book: activeLoan.bookCopy.book,
-    borrowedAt: activeLoan.borrowedAt,
-    returnedAt: new Date(),
+    book: bookCopy!.book,
+    borrowedAt: updatedLoan.borrowedAt,
+    returnedAt,
   };
 }
 

@@ -1,5 +1,11 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { relations } from "drizzle-orm";
+import { isNull, relations } from "drizzle-orm";
+import {
+  index,
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const books = sqliteTable("books", {
   id: integer().primaryKey({ autoIncrement: true }),
@@ -38,7 +44,14 @@ export const loans = sqliteTable(
     returnedAt: integer("returned_at", { mode: "timestamp" }),
     lastReminderSent: integer("last_reminder_sent", { mode: "timestamp" }),
   },
-  (table) => [index("idx_active_loans").on(table.qrCodeId, table.returnedAt)],
+  (table) => [
+    index("idx_active_loans").on(table.qrCodeId, table.returnedAt),
+    // Unique partial index to prevent concurrent borrowing of the same book copy
+    // Only one active loan (returnedAt IS NULL) can exist per qrCodeId
+    uniqueIndex("idx_unique_active_loan")
+      .on(table.qrCodeId, table.returnedAt)
+      .where(isNull(table.returnedAt)),
+  ],
 );
 
 export const booksRelations = relations(books, ({ many }) => ({

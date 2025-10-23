@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `idx_unique_active_loan` ON `loans` (`qr_code_id`,`returned_at`) WHERE "loans"."returned_at" is null;
