@@ -227,14 +227,14 @@ Scan a QR code on any book to borrow it!`,
         copyDetails.currentLoan?.telegramUserId === ctx.from?.id;
 
       // Format message
-      const message = `📚 *${escapeMarkdown(copyDetails.book.title)}*
-by ${escapeMarkdown(copyDetails.book.author)}
+      const message = escapeMarkdown(`📚 *${copyDetails.book.title}*
+by ${copyDetails.book.author}
 
 Copy #${copyDetails.copyNumber}
 
-${escapeMarkdown(copyDetails.book.description)}
+${copyDetails.book.description}
 
-Status: ${isAvailable ? "✅ Available" : isBorrowedByCurrentUser ? "📖 Borrowed by you" : "📅 Currently borrowed"}`;
+Status: ${isAvailable ? "✅ Available" : isBorrowedByCurrentUser ? "📖 Borrowed by you" : "📅 Currently borrowed"}`);
 
       // Add inline keyboard (borrowing flow buttons to be implemented in Phase 2)
       const keyboard = new InlineKeyboard();
@@ -344,14 +344,14 @@ Status: ${isAvailable ? "✅ Available" : isBorrowedByCurrentUser ? "📖 Borrow
             text: "✅ Book borrowed successfully!",
           });
           await ctx.editMessageCaption({
-            caption: `✅ *Book Borrowed Successfully\\!*
+            caption: escapeMarkdown(`✅ Book Borrowed Successfully!
 
-📚 ${escapeMarkdown(result.book.title)}
+📚 ${result.book.title}
 Copy #${result.copyNumber}
 
 📅 Due date: ${dueDate}
 
-Enjoy your reading\\! Remember to return it on time\\.`,
+Enjoy your reading! Remember to return it on time.`),
             parse_mode: "MarkdownV2",
           });
         } else {
