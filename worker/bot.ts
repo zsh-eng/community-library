@@ -88,7 +88,7 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
   const bookCommands = new CommandGroup();
   // Use regex to handle both /book <isbn> and /book<isbn> formats
   bookCommands.command(
-    /book\s*(.+)/,
+    /^book\s*(.+)/,
     "View book details",
     async (ctx: Context) => {
       // Extract ISBN from the message text directly
