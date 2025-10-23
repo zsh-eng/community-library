@@ -103,3 +103,10 @@ pnpm dlx wrangler d1 execute community-library-db --local --file=./scripts/new-s
 2. Create a new bot and generate the bot token, retrieve the bot info.
 3. Add the bot token and bot info to `.dev.vars` (or `wrangler secrets` for the production credentials).
 4. If you're using Cloudflare Tunnel for local bot development, remember to create a `.env` file with the `DEV_HOST` so that vite can accept the connections.
+
+## Connecting to the database using drizzle studio
+
+1. Add @libsql/client as a dev dependency
+2. Comment out the "driver" line in `drizzle.config.ts`
+3. Add the URL to the wrangler SQLite database as the dbCredentials.url key.
+4. Run `bunx drizzle-kit studio`
