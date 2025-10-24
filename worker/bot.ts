@@ -20,7 +20,6 @@ import {
   NO_BORROWED_BOOKS,
   RETURN_SUCCESS,
   SEARCH_ERROR,
-  SEARCH_USAGE,
   USER_IDENTIFICATION_ERROR,
   WELCOME_MESSAGE,
 } from "./bot/format-message";
@@ -45,11 +44,6 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
   // Set bot commands with descriptions
   await bot.api.setMyCommands([
     { command: "start", description: "Start the bot and view welcome message" },
-    {
-      command: "search",
-      description: "Search for books by title, author, or ISBN",
-    },
-    // { command: "book", description: "View detailed information about a book" },
     { command: "mybooks", description: "View your currently borrowed books" },
   ]);
 
@@ -67,7 +61,9 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
    * (there's no specific bot command, the user needs to scan the QR code)
    */
   bot.command("start", async (ctx: Context) => {
-    await ctx.reply(WELCOME_MESSAGE);
+    await ctx.reply(WELCOME_MESSAGE, {
+      parse_mode: "MarkdownV2",
+    });
 
     const hiddenQuery = ctx.match?.toString().trim();
     if (!hiddenQuery) {
@@ -127,33 +123,6 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
     } catch (error) {
       console.error("Error fetching book copy details:", error);
       await ctx.reply(GENERIC_ERROR);
-    }
-  });
-
-  /**
-   * /search <query> - Search for books
-   */
-  bot.command("search", async (ctx: Context) => {
-    const query = ctx.match?.toString().trim();
-
-    if (!query) {
-      await ctx.reply(SEARCH_USAGE);
-      return;
-    }
-
-    try {
-      const results = await searchBooks(db, query, 10);
-
-      if (results.length === 0) {
-        await ctx.reply(formatNoSearchResultsMessage(query));
-        return;
-      }
-
-      const message = formatSearchResultsMessage(results, query);
-      await ctx.reply(message, { parse_mode: "MarkdownV2" });
-    } catch (error) {
-      console.error("Error searching books:", error);
-      await ctx.reply(SEARCH_ERROR);
     }
   });
 

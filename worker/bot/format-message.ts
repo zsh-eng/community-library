@@ -81,15 +81,18 @@ function escapeMarkdown(text: string): string {
 // MESSAGE CONSTANTS
 // ============================================================================
 
-export const WELCOME_MESSAGE = `📚 Welcome to the Community Library Bot!
+export const WELCOME_MESSAGE = `📚 Welcome to the Community Library Bot\\!
+
+To *search* for books, your can type the book or author's name:
+E\\.g\\. "harry potter"
+
+To *borrow \\/ return* a book, scan the QR code on the physical book
 
 Available commands:
-/search <query> - Search for books by title or author
-/book <isbn> - View details of a specific book
-/borrow <qr_code> - Borrow a book (scan QR code)
-/mybooks - View your currently borrowed books
+\\/start \\- Start the bot and view this message
+\\/mybooks \\- View your currently borrowed books
 
-Scan a QR code on any book to borrow it!`;
+Scan a QR code on any book to borrow it\\!`;
 
 export const SEARCH_USAGE =
   "Usage: /search <query>\n\nExample: /search piketty";
