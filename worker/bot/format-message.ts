@@ -17,6 +17,7 @@ export interface BookDetails {
     copyNumber: number;
     isAvailable: boolean;
     dueDate?: Date | null;
+    location: string;
   }>;
 }
 
@@ -133,7 +134,7 @@ export function formatBookDetailsMessage(bookDetails: BookDetails): string {
     .map((copy) => {
       const statusEmoji = copy.isAvailable ? "✅" : "📅";
       const statusText = copy.isAvailable
-        ? "Available"
+        ? `Available at ${copy.location}`
         : `Borrowed (due back ${new Date(copy.dueDate!).toLocaleDateString()})`;
       return `📖 Copy ${copy.copyNumber}: ${statusEmoji} ${statusText}`;
     })

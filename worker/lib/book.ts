@@ -53,6 +53,7 @@ export async function getBookDetails(db: Database, isbn: string) {
             where: isNull(loans.returnedAt),
             limit: 1,
           },
+          location: true,
         },
       },
     },
@@ -74,6 +75,7 @@ export async function getBookDetails(db: Database, isbn: string) {
     status: copy.status,
     isAvailable: copy.status === "available" && copy.loans.length === 0,
     dueDate: copy.loans[0]?.dueDate || null,
+    location: copy.location.name,
   }));
 
   return {
