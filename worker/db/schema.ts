@@ -7,6 +7,11 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
+export const locations = sqliteTable("locations", {
+  id: integer().primaryKey({ autoIncrement: true }),
+  name: text().notNull(),
+});
+
 export const books = sqliteTable("books", {
   id: integer().primaryKey({ autoIncrement: true }),
   isbn: text().unique(),
@@ -24,6 +29,9 @@ export const bookCopies = sqliteTable("book_copies", {
   bookId: integer("book_id")
     .notNull()
     .references(() => books.id),
+  locationId: integer("location_id")
+    .notNull()
+    .references(() => locations.id),
   copyNumber: integer("copy_number").notNull(),
   status: text().default("available"),
 });
@@ -54,6 +62,10 @@ export const loans = sqliteTable(
   ],
 );
 
+export const locationsRelations = relations(locations, ({ many }) => ({
+  bookCopies: many(bookCopies),
+}));
+
 export const booksRelations = relations(books, ({ many }) => ({
   bookCopies: many(bookCopies),
 }));
@@ -62,6 +74,10 @@ export const bookCopiesRelations = relations(bookCopies, ({ one, many }) => ({
   book: one(books, {
     fields: [bookCopies.bookId],
     references: [books.id],
+  }),
+  location: one(locations, {
+    fields: [bookCopies.locationId],
+    references: [locations.id],
   }),
   loans: many(loans),
 }));

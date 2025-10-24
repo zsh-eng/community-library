@@ -97,6 +97,8 @@ bunx wrangler d1 migrations apply community-library-db --local
 pnpm dlx wrangler d1 execute community-library-db --local --file=./scripts/new-seed.sql
 ```
 
+Note: seeding of locations is done in the migration file.
+
 ## Telegram Bot
 
 1. Follow the instructions in the [Grammy Docs](https://grammy.dev/hosting/cloudflare-workers-nodejs).

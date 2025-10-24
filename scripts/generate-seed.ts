@@ -14,6 +14,7 @@ interface Copy {
   bookId: number;
   copyNumber: number;
   status: "available" | "borrowed";
+  locationId: number;
 }
 
 interface Loan {
@@ -98,19 +99,31 @@ function generateCopies(bookCount: number): Copy[] {
   const copies: Copy[] = [];
 
   for (let bookId = 1; bookId <= bookCount; bookId++) {
-    const numCopies = randomInt(1, 3);
+    // Weighted random number of copies: 70% 1 copy, 20% 2 copies, 10% 3 copies
+    const rand = Math.random();
+    let numCopies: number;
+    if (rand < 0.7) {
+      numCopies = 1;
+    } else if (rand < 0.9) {
+      numCopies = 2;
+    } else {
+      numCopies = 3;
+    }
 
     for (let copyNum = 1; copyNum <= numCopies; copyNum++) {
       const qrCodeId = generateQrCodeId(bookId, copyNum);
       // Last copy of each book might be borrowed
       const status =
         copyNum === numCopies && Math.random() > 0.5 ? "borrowed" : "available";
+      // Random location: 1 (Saga), 2 (Elm), or 3 (Cendana)
+      const locationId = randomInt(1, 3);
 
       copies.push({
         qrCodeId,
         bookId,
         copyNumber: copyNum,
         status,
+        locationId,
       });
     }
   }
@@ -122,11 +135,11 @@ function generateCopies(bookCount: number): Copy[] {
 function generateCopiesSql(copies: Copy[]): string {
   const values = copies
     .map((copy) => {
-      return `  ('${copy.qrCodeId}', ${copy.bookId}, ${copy.copyNumber}, '${copy.status}')`;
+      return `  ('${copy.qrCodeId}', ${copy.bookId}, ${copy.copyNumber}, '${copy.status}', ${copy.locationId})`;
     })
     .join(",\n");
 
-  return `-- Insert book copies\nINSERT INTO book_copies (qr_code_id, book_id, copy_number, status) VALUES\n${values};\n`;
+  return `-- Insert book copies\nINSERT INTO book_copies (qr_code_id, book_id, copy_number, status, location_id) VALUES\n${values};\n`;
 }
 
 // Generate loans for copies
