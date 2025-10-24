@@ -17,7 +17,7 @@
     {
       "binding": "DATABASE",
       "database_name": "community-library-db",
-      "database_id": "d0a78d85-19ff-405a-80db-e82657f25402",
+      "database_id": "1ff24307-b12a-403d-a54e-b73db510664c",
       "migrations_dir": "drizzle",
     },
   ],
