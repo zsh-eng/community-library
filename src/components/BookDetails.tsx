@@ -1,8 +1,9 @@
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { generateTelegramBookUrl } from "@/lib/bot";
+import { cn } from "@/lib/utils";
 import { Send } from "lucide-react";
-import { cn } from "../lib/utils";
-import { BookImage } from "./BookImage";
-import { Separator } from "./ui/separator";
+import { useState } from "react";
 
 interface Loan {
   id: number;
@@ -44,88 +45,256 @@ interface BookDetailsProps {
   book: BookDetail;
 }
 
+function BookImage({ src, alt }: { src: string; alt: string }) {
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateYValue = -(((x - centerX) / centerX) * 10);
+    const rotateXValue = ((y - centerY) / centerY) * 10;
+
+    setRotateX(rotateXValue);
+    setRotateY(rotateYValue);
+  };
+
+  const handleMouseLeave = () => {
+    setRotateX(0);
+    setRotateY(0);
+  };
+
+  if (imageError) {
+    return (
+      <div className="w-80 h-[480px] flex items-center justify-center">
+        <Skeleton className="w-full h-full rounded-lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-80 perspective-1000">
+      {!imageLoaded && <Skeleton className="w-80 h-[480px] rounded-lg" />}
+      <div
+        className={cn(
+          "relative transition-transform duration-300 ease-out cursor-pointer",
+          !imageLoaded && "hidden",
+        )}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+          transformStyle: "preserve-3d",
+        }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageError(true)}
+          className="w-full h-auto object-cover rounded-lg shadow-2xl"
+          style={{
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4)",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function BookDetails({ book }: BookDetailsProps) {
   return (
-    <div className="max-w-4xl mx-auto">
-      {book.imageUrl && <BookImage src={book.imageUrl} alt={book.title} />}
-
-      <div className="mt-16 mb-8 px-4">
-        <h1 className="text-2xl font-bold font-serif">{book.title}</h1>
-        <p className="text-xl italic font-serif">{book.author}</p>
-        <Separator className="!w-16 my-2 bg-primary" />
-
-        {book.isbn && (
-          <p className="text-xs text-muted-foreground mb-8">
-            ISBN: {book.isbn}
-          </p>
-        )}
-
-        {book.description && (
-          <div className="prose max-w-none font-serif">
-            <p className="text-base leading-relaxed">{book.description}</p>
+    <div className="w-full px-4 py-8">
+      {/* Mobile Layout */}
+      <div className="lg:hidden max-w-4xl mx-auto">
+        {book.imageUrl && (
+          <div className="mb-12 flex justify-center">
+            <BookImage src={book.imageUrl} alt={book.title} />
           </div>
         )}
+        <div>
+          <h1 className="text-2xl font-bold font-serif">{book.title}</h1>
+          <p className="text-xl italic font-serif">{book.author}</p>
+          <Separator className="!w-16 my-2 bg-primary" />
 
-        <h2 className="mt-12 mb-8 text-xl font-bold font-serif italic">
-          Copies
-        </h2>
+          {book.isbn && (
+            <p className="text-xs text-muted-foreground mb-8">
+              ISBN: {book.isbn}
+            </p>
+          )}
 
-        {book.bookCopies.length === 0 ? (
-          <p className="text-muted-foreground">
-            No copies available in the library.
-          </p>
-        ) : (
-          <div className="space-y-0 border border-border">
-            {book.bookCopies.map((copy) => {
-              const isAvailable = copy.loans.length === 0;
-              const currentLoan = copy.loans.find((loan) => !loan.returnedAt);
-              const dueDate = currentLoan
-                ? new Date(currentLoan.dueDate).toLocaleDateString()
-                : null;
+          {book.description && (
+            <div className="prose max-w-none font-serif">
+              <p className="text-base leading-relaxed">{book.description}</p>
+            </div>
+          )}
 
-              return (
-                <div
-                  key={copy.qrCodeId}
-                  className={cn(
-                    "flex items-center border-b border-border last:border-b-0 transition-all duration-200 outline outline-transparent hover:outline-primary hover:translate-x-2 font-serif",
-                    !isAvailable && "text-muted-foreground",
-                  )}
-                >
-                  <div className="flex items-center flex-1 py-4 px-6">
-                    <span className="text-base">{copy.copyNumber}</span>
-                    <div className="mx-6 h-8 w-px bg-border"></div>
+          <h2 className="mt-12 mb-8 text-xl font-bold font-serif italic">
+            Copies
+          </h2>
 
-                    {isAvailable && (
-                      <span className="text-base">
-                        Available at{" "}
-                        <span className="underline">{copy.location.name} </span>
-                      </span>
+          {book.bookCopies.length === 0 ? (
+            <p className="text-muted-foreground">
+              No copies available in the library.
+            </p>
+          ) : (
+            <div className="space-y-0 border border-border">
+              {book.bookCopies.map((copy) => {
+                const isAvailable = copy.loans.length === 0;
+                const currentLoan = copy.loans.find((loan) => !loan.returnedAt);
+                const dueDate = currentLoan
+                  ? new Date(currentLoan.dueDate).toLocaleDateString()
+                  : null;
+
+                return (
+                  <div
+                    key={copy.qrCodeId}
+                    className={cn(
+                      "flex items-center border-b border-border last:border-b-0 transition-all duration-200 outline outline-transparent hover:outline-primary hover:translate-x-2 font-serif",
+                      !isAvailable && "text-muted-foreground",
                     )}
+                  >
+                    <div className="flex items-center flex-1 py-4 px-6">
+                      <span className="text-base">{copy.copyNumber}</span>
+                      <div className="mx-6 h-8 w-px bg-border"></div>
 
-                    {!isAvailable && (
-                      <>
+                      {isAvailable && (
+                        <span className="text-base">
+                          Available at{" "}
+                          <span className="underline">
+                            {copy.location.name}{" "}
+                          </span>
+                        </span>
+                      )}
+
+                      {!isAvailable && (
                         <span className="text-base">
                           Due on{" "}
-                          {<span className="underline">{dueDate}</span>}{" "}
+                          <span className="underline">{dueDate}</span>{" "}
                         </span>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
 
-        <a
-          href={generateTelegramBookUrl(book.isbn!)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
-        >
-          <Send className="h-5 w-5 transition-colors duration-200" />
-          <span className="text-base">View on Telegram</span>
-        </a>
+          <a
+            href={generateTelegramBookUrl(book.isbn!)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
+          >
+            <Send className="h-5 w-5 transition-colors duration-200" />
+            <span className="text-base">View on Telegram</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:block max-w-[1400px] mx-auto">
+        <div className="flex gap-16 items-start">
+          {/* Image Column - Centered and Sticky */}
+          {book.imageUrl && (
+            <div className="flex-1 flex justify-center sticky top-8">
+              <BookImage src={book.imageUrl} alt={book.title} />
+            </div>
+          )}
+
+          {/* Content Column - Right aligned with max width */}
+          <div
+            className={cn(
+              "w-full",
+              book.imageUrl ? "max-w-[60ch]" : "max-w-4xl mx-auto",
+            )}
+          >
+            <h1 className="text-2xl font-bold font-serif">{book.title}</h1>
+            <p className="text-xl italic font-serif">{book.author}</p>
+            <Separator className="!w-16 my-2 bg-primary" />
+
+            {book.isbn && (
+              <p className="text-xs text-muted-foreground mb-8">
+                ISBN: {book.isbn}
+              </p>
+            )}
+
+            {book.description && (
+              <div className="prose max-w-none font-serif">
+                <p className="text-base leading-relaxed">{book.description}</p>
+              </div>
+            )}
+
+            <h2 className="mt-12 mb-8 text-xl font-bold font-serif italic">
+              Copies
+            </h2>
+
+            {book.bookCopies.length === 0 ? (
+              <p className="text-muted-foreground">
+                No copies available in the library.
+              </p>
+            ) : (
+              <div className="space-y-0 border border-border">
+                {book.bookCopies.map((copy) => {
+                  const isAvailable = copy.loans.length === 0;
+                  const currentLoan = copy.loans.find(
+                    (loan) => !loan.returnedAt,
+                  );
+                  const dueDate = currentLoan
+                    ? new Date(currentLoan.dueDate).toLocaleDateString()
+                    : null;
+
+                  return (
+                    <div
+                      key={copy.qrCodeId}
+                      className={cn(
+                        "flex items-center border-b border-border last:border-b-0 transition-all duration-200 outline outline-transparent hover:outline-primary hover:translate-x-2 font-serif",
+                        !isAvailable && "text-muted-foreground",
+                      )}
+                    >
+                      <div className="flex items-center flex-1 py-4 px-6">
+                        <span className="text-base">{copy.copyNumber}</span>
+                        <div className="mx-6 h-8 w-px bg-border"></div>
+
+                        {isAvailable && (
+                          <span className="text-base">
+                            Available at{" "}
+                            <span className="underline">
+                              {copy.location.name}{" "}
+                            </span>
+                          </span>
+                        )}
+
+                        {!isAvailable && (
+                          <span className="text-base">
+                            Due on{" "}
+                            <span className="underline">{dueDate}</span>{" "}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <a
+              href={generateTelegramBookUrl(book.isbn!)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
+            >
+              <Send className="h-5 w-5 transition-colors duration-200" />
+              <span className="text-base">View on Telegram</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );
