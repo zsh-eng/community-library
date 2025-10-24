@@ -9,7 +9,7 @@ const client = hc<AppType>(import.meta.env.BASE_URL);
 
 interface Book {
   id: number;
-  isbn: string | null;
+  isbn: string;
   title: string;
   author: string;
   imageUrl: string | null;
@@ -159,6 +159,7 @@ function Library() {
                       <div className="aspect-[2/3] relative overflow-hidden bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:scale-[102%]">
                         {book.imageUrl ? (
                           <img
+                            // src={book.imageUrl}
                             src={book.imageUrl}
                             alt={book.title}
                             className="w-full h-full object-cover"

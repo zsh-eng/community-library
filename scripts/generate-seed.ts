@@ -47,6 +47,9 @@ const SAMPLE_USERNAMES = [
   "olivia_curator",
 ];
 
+const IMAGE_BASE_PATH =
+  "https://cdn.jsdelivr.net/gh/zsh-eng/community-library-images@main/assets/books";
+
 // Helper to get random integer between min and max (inclusive)
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -85,7 +88,9 @@ function generateBooksSql(books: Book[]): string {
       const title = book.title.replace(/'/g, "''");
       const description = book.description.replace(/'/g, "''");
       const author = book.author.replace(/'/g, "''");
-      const imageUrl = book.image_url.replace(/'/g, "''");
+
+      const updatedImageUrl = `${IMAGE_BASE_PATH}/${book.isbn}.jpg`;
+      const imageUrl = updatedImageUrl.replace(/'/g, "''");
 
       return `  (${id}, '${isbn}', '${title}', '${description}', '${author}', '${imageUrl}', strftime('%s', 'now'))`;
     })
