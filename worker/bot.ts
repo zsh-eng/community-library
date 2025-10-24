@@ -42,6 +42,17 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
   const bot = new Bot(c.env.BOT_TOKEN, { botInfo: JSON.parse(c.env.BOT_INFO) });
   const db = drizzle(c.env.DATABASE, { schema });
 
+  // Set bot commands with descriptions
+  await bot.api.setMyCommands([
+    { command: "start", description: "Start the bot and view welcome message" },
+    {
+      command: "search",
+      description: "Search for books by title, author, or ISBN",
+    },
+    // { command: "book", description: "View detailed information about a book" },
+    { command: "mybooks", description: "View your currently borrowed books" },
+  ]);
+
   // ========================================
   // COMMAND HANDLERS
   // ========================================
