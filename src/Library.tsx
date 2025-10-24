@@ -98,10 +98,8 @@ function Library() {
     if (isMobile) {
       e.preventDefault();
       setSearchParams({ book: bookId.toString() });
-    } else {
-      // Let the Link handle navigation on desktop
-      navigate(`/book/${bookId}`);
     }
+    // Or else just let the link handle
   };
 
   return (
