@@ -3,7 +3,7 @@ import { hc } from "hono/client";
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import type { AppType } from "../worker/index";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
