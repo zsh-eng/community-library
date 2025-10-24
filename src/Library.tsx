@@ -156,7 +156,7 @@ function Library() {
                   >
                     <div className="space-y-3">
                       {/* Book Cover */}
-                      <div className="aspect-[2/3] relative overflow-hidden bg-muted shadow-lg rounded-sm transition-all duration-300 group-hover:shadow-2xl group-hover:scale-[102%]">
+                      <div className="aspect-[2/3] relative overflow-hidden bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:scale-[102%]">
                         {book.imageUrl ? (
                           <img
                             src={book.imageUrl}

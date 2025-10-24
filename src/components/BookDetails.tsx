@@ -176,7 +176,7 @@ export function BookDetails({ book }: BookDetailsProps) {
         <div className="flex gap-16 items-start">
           {/* Image Column - Centered and Sticky */}
           {book.imageUrl && (
-            <div className="flex-1 flex justify-center sticky top-8">
+            <div className="flex-1 flex justify-end sticky top-8 pr-16">
               <BookImage src={book.imageUrl} alt={book.title} />
             </div>
           )}
@@ -263,7 +263,7 @@ export function BookDetails({ book }: BookDetailsProps) {
               rel="noopener noreferrer"
               className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
             >
-              <Send className="h-5 w-5 transition-colors duration-200" />
+              <Send className="h-4 w-4 transition-colors duration-200" />
               <span className="text-base">View on Telegram</span>
             </a>
           </div>
