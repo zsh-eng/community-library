@@ -14,7 +14,7 @@ export const locations = sqliteTable("locations", {
 
 export const books = sqliteTable("books", {
   id: integer().primaryKey({ autoIncrement: true }),
-  isbn: text().unique(),
+  isbn: text().unique().notNull(),
   title: text().notNull(),
   description: text().notNull(),
   author: text().notNull(),

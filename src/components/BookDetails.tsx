@@ -1,3 +1,5 @@
+import { generateTelegramBookUrl } from "@/lib/bot";
+import { Send } from "lucide-react";
 import { cn } from "../lib/utils";
 import { BookImage } from "./BookImage";
 import { Separator } from "./ui/separator";
@@ -29,7 +31,7 @@ interface BookCopy {
 
 export interface BookDetail {
   id: number;
-  isbn: string | null;
+  isbn: string;
   title: string;
   author: string;
   imageUrl: string | null;
@@ -114,6 +116,16 @@ export function BookDetails({ book }: BookDetailsProps) {
             })}
           </div>
         )}
+
+        <a
+          href={generateTelegramBookUrl(book.isbn!)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
+        >
+          <Send className="h-5 w-5 transition-colors duration-200" />
+          <span className="text-base">View on Telegram</span>
+        </a>
       </div>
     </div>
   );
