@@ -24,7 +24,6 @@ function Library() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile view
@@ -145,10 +144,6 @@ function Library() {
                 transition={{
                   ease: "easeOut",
                   duration: 0.7,
-                  // y: { duration: 0.5 },
-                  // opacity: {
-                  //   duration: 0.7,
-                  // },
                 }}
               >
                 {filteredBooks.map((book) => (
