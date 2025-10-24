@@ -46,29 +46,8 @@ interface BookDetailsProps {
 }
 
 function BookImage({ src, alt }: { src: string; alt: string }) {
-  const [rotateX, setRotateX] = useState(0);
-  const [rotateY, setRotateY] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const rotateYValue = -(((x - centerX) / centerX) * 10);
-    const rotateXValue = ((y - centerY) / centerY) * 10;
-
-    setRotateX(rotateXValue);
-    setRotateY(rotateYValue);
-  };
-
-  const handleMouseLeave = () => {
-    setRotateX(0);
-    setRotateY(0);
-  };
 
   if (imageError) {
     return (
@@ -86,12 +65,6 @@ function BookImage({ src, alt }: { src: string; alt: string }) {
           "relative transition-transform duration-300 ease-out cursor-pointer",
           !imageLoaded && "hidden",
         )}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-          transformStyle: "preserve-3d",
-        }}
       >
         <img
           src={src}
