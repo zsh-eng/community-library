@@ -205,9 +205,6 @@ export function formatBookCopyDetailsMessage(
 by ${copyDetails.book.author}
 
 Copy #${copyDetails.copyNumber}
-
-${copyDetails.book.description}
-
 Status: ${isAvailable ? "✅ Available" : "📖 Borrowed by you"}`;
 
   return escapeMarkdown(plainMessage);
@@ -227,9 +224,6 @@ export function formatBookCopyBorrowedMessage(
 by ${copyDetails.book.author}
 
 Copy #${copyDetails.copyNumber}
-
-${copyDetails.book.description}
-
 Status: 📅 Currently borrowed
 
 📅 This book is currently borrowed and due back on ${dueDate}.`;
