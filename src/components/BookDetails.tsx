@@ -1,6 +1,6 @@
+import { cn } from "../lib/utils";
 import { BookImage } from "./BookImage";
 import { Separator } from "./ui/separator";
-import { cn } from "../lib/utils";
 
 interface Loan {
   id: number;
@@ -13,12 +13,18 @@ interface Loan {
   lastReminderSent: string | null;
 }
 
+interface Location {
+  id: number;
+  name: string;
+}
+
 interface BookCopy {
   qrCodeId: string;
   bookId: number;
   copyNumber: number;
   status: string | null;
   loans: Loan[];
+  location: Location;
 }
 
 export interface BookDetail {
@@ -88,7 +94,10 @@ export function BookDetails({ book }: BookDetailsProps) {
                     <div className="mx-6 h-8 w-px bg-border"></div>
 
                     {isAvailable && (
-                      <span className="text-base">Available</span>
+                      <span className="text-base">
+                        Available at{" "}
+                        <span className="underline">{copy.location.name} </span>
+                      </span>
                     )}
 
                     {!isAvailable && (

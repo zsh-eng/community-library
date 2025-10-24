@@ -1,9 +1,9 @@
 /// <reference types="../worker-configuration.d.ts" />
-import { Hono } from "hono";
-import { drizzle } from "drizzle-orm/d1";
 import { eq, isNull } from "drizzle-orm";
-import * as schema from "./db/schema.ts";
+import { drizzle } from "drizzle-orm/d1";
+import { Hono } from "hono";
 import { botApp } from "./bot.ts";
+import * as schema from "./db/schema.ts";
 
 const app = new Hono<{
   Bindings: Env;
@@ -46,6 +46,7 @@ const route = app
             loans: {
               where: isNull(schema.loans.returnedAt),
             },
+            location: true,
           },
         },
       },
