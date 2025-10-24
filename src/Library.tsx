@@ -1,9 +1,10 @@
+import { BookDrawer } from "@/components/BookDrawer";
 import { hc } from "hono/client";
 import { Search } from "lucide-react";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import type { AppType } from "../worker/index";
-import { BookDrawer } from "./components/BookDrawer";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
@@ -78,14 +79,6 @@ function Library() {
     setFilteredBooks(filtered);
   }, [searchQuery, books]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg text-muted-foreground">Loading library...</p>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -105,39 +98,38 @@ function Library() {
   return (
     <>
       <BookDrawer />
-      <div className="min-h-screen bg-background pt-12">
+      <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-serif font-bold mb-4">Library</h1>
-
-          {/* Sticky Search Bar */}
-          <div className="sticky top-8 z-10 bg-background border-b border-border sm:-mx-6 lg:-mx-8 sm:px-6 lg:px-8">
-            <div className="">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search by title or author"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-muted border-none outline-none text-base focus:bg-muted/80 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Sticky Book Count */}
-          <div className="sticky top-20 z-10 bg-background border-b border-border sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-            <div className="py-3">
-              <p className="text-sm text-muted-foreground font-medium">
-                {filteredBooks.length}{" "}
-                {filteredBooks.length === 1 ? "book" : "books"}
-              </p>
+          {/* Rounded Search Bar at Top */}
+          <div className="sticky top-4 z-10 py-6">
+            <div className="relative max-w-2xl mx-auto focus-within:scale-[102%] transition-all">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search by title or author"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-full outline-none text-base focus:ring-1 focus:ring-ring focus:border-transparent transition-all shadow-sm focus:shadow-md"
+              />
             </div>
           </div>
 
           {/* Grid Layout */}
           <div className="py-8">
-            {filteredBooks.length === 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                {/* Skeleton loading placeholders */}
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="space-y-3 animate-pulse">
+                    <div className="aspect-[2/3] bg-muted rounded-sm" />
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted rounded" />
+                      <div className="h-3 bg-muted rounded w-2/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredBooks.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-lg text-muted-foreground">
                   {searchQuery
@@ -147,43 +139,60 @@ function Library() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                {filteredBooks.map((book) => (
-                  <Link
+                {filteredBooks.map((book, index) => (
+                  <motion.div
                     key={book.id}
-                    to={`/book/${book.id}`}
-                    className="group cursor-pointer"
-                    onClick={(e) => handleBookClick(book.id, e)}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "0px 0px -100px 0px" }}
+                    transition={{
+                      duration: 0.4,
+                      delay: index * 0.05,
+                      ease: "easeOut",
+                    }}
                   >
-                    <div className="space-y-3">
-                      {/* Book Cover */}
-                      <div className="aspect-[2/3] relative overflow-hidden bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:scale-[102%]">
-                        {book.imageUrl ? (
-                          <img
-                            // src={book.imageUrl}
-                            src={book.imageUrl}
-                            alt={book.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-muted">
-                            <p className="text-xs text-muted-foreground text-center px-2">
-                              No cover
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                    <Link
+                      to={`/book/${book.id}`}
+                      className="group cursor-pointer block"
+                      onClick={(e) => handleBookClick(book.id, e)}
+                    >
+                      <div className="space-y-3">
+                        {/* Book Cover */}
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:scale-[102%]">
+                          {book.imageUrl ? (
+                            <motion.img
+                              src={book.imageUrl}
+                              alt={book.title}
+                              className="w-full h-full object-cover"
+                              initial={{ opacity: 0 }}
+                              whileInView={{ opacity: 1 }}
+                              viewport={{
+                                once: true,
+                                amount: "some",
+                              }}
+                              transition={{ duration: 0.5 }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-muted">
+                              <p className="text-xs text-muted-foreground text-center px-2">
+                                No cover
+                              </p>
+                            </div>
+                          )}
+                        </div>
 
-                      {/* Book Info */}
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors font-serif">
-                          {book.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {book.author}
-                        </p>
+                        {/* Book Info */}
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors font-serif">
+                            {book.title}
+                          </h3>
+                          <p className="text-xs text-muted-foreground line-clamp-1">
+                            {book.author}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  </motion.div>
                 ))}
               </div>
             )}

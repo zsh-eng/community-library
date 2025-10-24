@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { generateTelegramBookUrl } from "@/lib/bot";
 import { cn } from "@/lib/utils";
 import { Send } from "lucide-react";
+import { motion } from "motion/react";
 import { useState } from "react";
 
 interface Loan {
@@ -87,127 +88,76 @@ export function BookDetails({ book }: BookDetailsProps) {
       {/* Mobile Layout */}
       <div className="lg:hidden max-w-4xl mx-auto">
         {book.imageUrl && (
-          <div className="mb-12 flex justify-center">
+          <motion.div
+            className="mb-12 flex justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <BookImage src={book.imageUrl} alt={book.title} />
-          </div>
+          </motion.div>
         )}
         <div>
-          <h1 className="text-2xl font-bold font-serif">{book.title}</h1>
-          <p className="text-xl italic font-serif">{book.author}</p>
-          <Separator className="!w-16 my-2 bg-primary" />
+          <motion.h1
+            className="text-2xl font-bold font-serif"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {book.title}
+          </motion.h1>
+          <motion.p
+            className="text-xl italic font-serif"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {book.author}
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Separator className="!w-16 my-2 bg-primary" />
+          </motion.div>
 
           {book.isbn && (
-            <p className="text-xs text-muted-foreground mb-8">
+            <motion.p
+              className="text-xs text-muted-foreground mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               ISBN: {book.isbn}
-            </p>
+            </motion.p>
           )}
 
           {book.description && (
-            <div className="prose max-w-none font-serif">
+            <motion.div
+              className="prose max-w-none font-serif"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
               <p className="text-base leading-relaxed">{book.description}</p>
-            </div>
+            </motion.div>
           )}
 
-          <h2 className="mt-12 mb-8 text-xl font-bold font-serif italic">
+          <motion.h2
+            className="mt-12 mb-8 text-xl font-bold font-serif italic"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
             Copies
-          </h2>
+          </motion.h2>
 
-          {book.bookCopies.length === 0 ? (
-            <p className="text-muted-foreground">
-              No copies available in the library.
-            </p>
-          ) : (
-            <div className="space-y-0 border border-border">
-              {book.bookCopies.map((copy) => {
-                const isAvailable = copy.loans.length === 0;
-                const currentLoan = copy.loans.find((loan) => !loan.returnedAt);
-                const dueDate = currentLoan
-                  ? new Date(currentLoan.dueDate).toLocaleDateString()
-                  : null;
-
-                return (
-                  <div
-                    key={copy.qrCodeId}
-                    className={cn(
-                      "flex items-center border-b border-border last:border-b-0 transition-all duration-200 outline outline-transparent hover:outline-primary hover:translate-x-2 font-serif",
-                      !isAvailable && "text-muted-foreground",
-                    )}
-                  >
-                    <div className="flex items-center flex-1 py-4 px-6">
-                      <span className="text-base">{copy.copyNumber}</span>
-                      <div className="mx-6 h-8 w-px bg-border"></div>
-
-                      {isAvailable && (
-                        <span className="text-base">
-                          Available at{" "}
-                          <span className="underline">
-                            {copy.location.name}{" "}
-                          </span>
-                        </span>
-                      )}
-
-                      {!isAvailable && (
-                        <span className="text-base">
-                          Due on{" "}
-                          <span className="underline">{dueDate}</span>{" "}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <a
-            href={generateTelegramBookUrl(book.isbn!)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <Send className="h-5 w-5 transition-colors duration-200" />
-            <span className="text-base">View on Telegram</span>
-          </a>
-        </div>
-      </div>
-
-      {/* Desktop Layout */}
-      <div className="hidden lg:block max-w-[1400px] mx-auto">
-        <div className="flex gap-16 items-start">
-          {/* Image Column - Centered and Sticky */}
-          {book.imageUrl && (
-            <div className="flex-1 flex justify-end sticky top-8 pr-16">
-              <BookImage src={book.imageUrl} alt={book.title} />
-            </div>
-          )}
-
-          {/* Content Column - Right aligned with max width */}
-          <div
-            className={cn(
-              "w-full",
-              book.imageUrl ? "max-w-[60ch]" : "max-w-4xl mx-auto",
-            )}
-          >
-            <h1 className="text-2xl font-bold font-serif">{book.title}</h1>
-            <p className="text-xl italic font-serif">{book.author}</p>
-            <Separator className="!w-16 my-2 bg-primary" />
-
-            {book.isbn && (
-              <p className="text-xs text-muted-foreground mb-8">
-                ISBN: {book.isbn}
-              </p>
-            )}
-
-            {book.description && (
-              <div className="prose max-w-none font-serif">
-                <p className="text-base leading-relaxed">{book.description}</p>
-              </div>
-            )}
-
-            <h2 className="mt-12 mb-8 text-xl font-bold font-serif italic">
-              Copies
-            </h2>
-
             {book.bookCopies.length === 0 ? (
               <p className="text-muted-foreground">
                 No copies available in the library.
@@ -263,9 +213,154 @@ export function BookDetails({ book }: BookDetailsProps) {
               rel="noopener noreferrer"
               className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
             >
-              <Send className="h-4 w-4 transition-colors duration-200" />
+              <Send className="h-5 w-5 transition-colors duration-200" />
               <span className="text-base">View on Telegram</span>
             </a>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:block max-w-[1400px] mx-auto">
+        <div className="flex gap-16 items-start">
+          {/* Image Column - Centered and Sticky */}
+          {book.imageUrl && (
+            <motion.div
+              className="flex-1 flex justify-end sticky top-8 pr-16"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <BookImage src={book.imageUrl} alt={book.title} />
+            </motion.div>
+          )}
+
+          {/* Content Column - Right aligned with max width */}
+          <div
+            className={cn(
+              "w-full",
+              book.imageUrl ? "max-w-[60ch]" : "max-w-4xl mx-auto",
+            )}
+          >
+            <motion.h1
+              className="text-2xl font-bold font-serif"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {book.title}
+            </motion.h1>
+            <motion.p
+              className="text-xl italic font-serif"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {book.author}
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <Separator className="!w-16 my-2 bg-primary" />
+            </motion.div>
+
+            {book.isbn && (
+              <motion.p
+                className="text-xs text-muted-foreground mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                ISBN: {book.isbn}
+              </motion.p>
+            )}
+
+            {book.description && (
+              <motion.div
+                className="prose max-w-none font-serif"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <p className="text-base leading-relaxed">{book.description}</p>
+              </motion.div>
+            )}
+
+            <motion.h2
+              className="mt-12 mb-8 text-xl font-bold font-serif italic"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              Copies
+            </motion.h2>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              {book.bookCopies.length === 0 ? (
+                <p className="text-muted-foreground">
+                  No copies available in the library.
+                </p>
+              ) : (
+                <div className="space-y-0 border border-border">
+                  {book.bookCopies.map((copy) => {
+                    const isAvailable = copy.loans.length === 0;
+                    const currentLoan = copy.loans.find(
+                      (loan) => !loan.returnedAt,
+                    );
+                    const dueDate = currentLoan
+                      ? new Date(currentLoan.dueDate).toLocaleDateString()
+                      : null;
+
+                    return (
+                      <div
+                        key={copy.qrCodeId}
+                        className={cn(
+                          "flex items-center border-b border-border last:border-b-0 transition-all duration-200 outline outline-transparent hover:outline-primary hover:translate-x-2 font-serif",
+                          !isAvailable && "text-muted-foreground",
+                        )}
+                      >
+                        <div className="flex items-center flex-1 py-4 px-6">
+                          <span className="text-base">{copy.copyNumber}</span>
+                          <div className="mx-6 h-8 w-px bg-border"></div>
+
+                          {isAvailable && (
+                            <span className="text-base">
+                              Available at{" "}
+                              <span className="underline">
+                                {copy.location.name}{" "}
+                              </span>
+                            </span>
+                          )}
+
+                          {!isAvailable && (
+                            <span className="text-base">
+                              Due on{" "}
+                              <span className="underline">{dueDate}</span>{" "}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <a
+                href={generateTelegramBookUrl(book.isbn!)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-0 flex items-center justify-center gap-3 border border-border py-5 px-6 text-foreground font-serif transition-all duration-200 outline outline-transparent hover:outline-[#229ED9] hover:text-[#229ED9] hover:translate-x-2"
+              >
+                <Send className="h-4 w-4 transition-colors duration-200" />
+                <span className="text-base">View on Telegram</span>
+              </a>
+            </motion.div>
           </div>
         </div>
       </div>
