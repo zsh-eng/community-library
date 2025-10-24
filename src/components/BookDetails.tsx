@@ -92,7 +92,10 @@ export function BookDetails({ book }: BookDetailsProps) {
             className="mb-12 flex justify-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{
+              y: { duration: 0.7 },
+              opacity: { duration: 0.3 },
+            }}
           >
             <BookImage src={book.imageUrl} alt={book.title} />
           </motion.div>
@@ -117,7 +120,7 @@ export function BookDetails({ book }: BookDetailsProps) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
             <Separator className="!w-16 my-2 bg-primary" />
           </motion.div>
@@ -138,7 +141,7 @@ export function BookDetails({ book }: BookDetailsProps) {
               className="prose max-w-none font-serif"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
             >
               <p className="text-base leading-relaxed">{book.description}</p>
             </motion.div>
@@ -148,7 +151,7 @@ export function BookDetails({ book }: BookDetailsProps) {
             className="mt-12 mb-8 text-xl font-bold font-serif italic"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
           >
             Copies
           </motion.h2>
@@ -156,7 +159,7 @@ export function BookDetails({ book }: BookDetailsProps) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
           >
             {book.bookCopies.length === 0 ? (
               <p className="text-muted-foreground">
@@ -227,9 +230,12 @@ export function BookDetails({ book }: BookDetailsProps) {
           {book.imageUrl && (
             <motion.div
               className="flex-1 flex justify-end sticky top-8 pr-16"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{
+                y: { duration: 0.7 },
+                opacity: { duration: 0.3 },
+              }}
             >
               <BookImage src={book.imageUrl} alt={book.title} />
             </motion.div>
@@ -261,7 +267,7 @@ export function BookDetails({ book }: BookDetailsProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
               <Separator className="!w-16 my-2 bg-primary" />
             </motion.div>
@@ -282,7 +288,7 @@ export function BookDetails({ book }: BookDetailsProps) {
                 className="prose max-w-none font-serif"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
               >
                 <p className="text-base leading-relaxed">{book.description}</p>
               </motion.div>
@@ -292,7 +298,7 @@ export function BookDetails({ book }: BookDetailsProps) {
               className="mt-12 mb-8 text-xl font-bold font-serif italic"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
             >
               Copies
             </motion.h2>
@@ -300,7 +306,7 @@ export function BookDetails({ book }: BookDetailsProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
             >
               {book.bookCopies.length === 0 ? (
                 <p className="text-muted-foreground">

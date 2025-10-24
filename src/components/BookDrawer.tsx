@@ -60,14 +60,6 @@ export function BookDrawer() {
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[90vh]">
         <div className="overflow-y-auto flex-1 pb-12 pt-4">
-          {loading && (
-            <div className="flex items-center justify-center py-16">
-              <p className="text-lg text-muted-foreground">
-                Loading book details...
-              </p>
-            </div>
-          )}
-
           {error && (
             <div className="px-4 py-8">
               <p className="text-lg text-red-600">{error}</p>

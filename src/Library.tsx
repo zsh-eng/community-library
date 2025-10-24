@@ -115,9 +115,9 @@ function Library() {
           </div>
 
           {/* Grid Layout */}
-          <div className="py-8">
+          <div className="pt-8 pb-24">
             {loading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5  gap-6">
                 {/* Skeleton loading placeholders */}
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div key={i} className="space-y-3 animate-pulse">
@@ -138,19 +138,21 @@ function Library() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                {filteredBooks.map((book, index) => (
-                  <motion.div
-                    key={book.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-                    transition={{
-                      duration: 0.4,
-                      delay: index * 0.05,
-                      ease: "easeOut",
-                    }}
-                  >
+              <motion.div
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  ease: "easeOut",
+                  duration: 0.7,
+                  // y: { duration: 0.5 },
+                  // opacity: {
+                  //   duration: 0.7,
+                  // },
+                }}
+              >
+                {filteredBooks.map((book) => (
+                  <motion.div key={book.id}>
                     <Link
                       to={`/book/${book.id}`}
                       className="group cursor-pointer block"
@@ -160,17 +162,10 @@ function Library() {
                         {/* Book Cover */}
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:scale-[102%]">
                           {book.imageUrl ? (
-                            <motion.img
+                            <img
                               src={book.imageUrl}
                               alt={book.title}
                               className="w-full h-full object-cover"
-                              initial={{ opacity: 0 }}
-                              whileInView={{ opacity: 1 }}
-                              viewport={{
-                                once: true,
-                                amount: "some",
-                              }}
-                              transition={{ duration: 0.5 }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-muted">
@@ -194,7 +189,7 @@ function Library() {
                     </Link>
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         </div>
