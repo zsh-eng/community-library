@@ -77,6 +77,17 @@ function escapeMarkdown(text: string): string {
   return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
 }
 
+/**
+ * Format date as dd/mm/yyyy consistently across all environments
+ */
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-SG", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
 // ============================================================================
 // MESSAGE CONSTANTS
 // ============================================================================
@@ -138,7 +149,7 @@ export function formatBookDetailsMessage(bookDetails: BookDetails): string {
       const statusEmoji = copy.isAvailable ? "✅" : "📅";
       const statusText = copy.isAvailable
         ? `Available at ${copy.location}`
-        : `Borrowed (due back ${new Date(copy.dueDate!).toLocaleDateString()})`;
+        : `Borrowed (due back ${formatDate(new Date(copy.dueDate!))})`;
       return `📖 Copy ${copy.copyNumber}: ${statusEmoji} ${statusText}`;
     })
     .join("\n");
@@ -219,9 +230,7 @@ Status: ${isAvailable ? "✅ Available" : "📖 Borrowed by you"}`;
 export function formatBookCopyBorrowedMessage(
   copyDetails: BookCopyDetails,
 ): string {
-  const dueDate = new Date(
-    copyDetails.currentLoan!.dueDate,
-  ).toLocaleDateString();
+  const dueDate = formatDate(new Date(copyDetails.currentLoan!.dueDate));
 
   const plainMessage = `📚 ${copyDetails.book.title}
 by ${copyDetails.book.author}
@@ -229,7 +238,7 @@ by ${copyDetails.book.author}
 Copy #${copyDetails.copyNumber}
 Status: 📅 Currently borrowed
 
-📅 This book is currently borrowed and due back on ${dueDate}.`;
+📅 This book is currently borrowed and due on ${dueDate}.`;
 
   return escapeMarkdown(plainMessage);
 }
@@ -240,7 +249,7 @@ Status: 📅 Currently borrowed
 export function formatMyBooksMessage(activeLoans: LoanDetails[]): string {
   const loanText = activeLoans
     .map((loan, index) => {
-      const dueDate = new Date(loan.dueDate).toLocaleDateString();
+      const dueDate = formatDate(new Date(loan.dueDate));
       const isOverdue = new Date(loan.dueDate) < new Date();
       const overdueIndicator = isOverdue ? " ⚠️ OVERDUE" : "";
 
@@ -262,7 +271,7 @@ export function formatMyBooksMessage(activeLoans: LoanDetails[]): string {
  * Format borrow success message
  */
 export function formatBorrowSuccessMessage(result: BorrowResult): string {
-  const dueDate = new Date(result.loan.dueDate).toLocaleDateString();
+  const dueDate = formatDate(new Date(result.loan.dueDate));
 
   const plainMessage = `✅ Book Borrowed Successfully!
 
