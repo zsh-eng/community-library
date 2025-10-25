@@ -63,11 +63,15 @@ function BookImage({ src, alt }: { src: string; alt: string }) {
       {!imageLoaded && (
         <Skeleton className="w-60 md:w-80 h-[480px] rounded-lg" />
       )}
-      <div
-        className={cn(
-          "relative transition-transform duration-300 ease-out cursor-pointer",
-          !imageLoaded && "hidden",
-        )}
+      <motion.div
+        className={cn("relative cursor-pointer", !imageLoaded && "hidden")}
+        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.01 }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 17,
+        }}
       >
         <img
           src={src}
@@ -79,7 +83,7 @@ function BookImage({ src, alt }: { src: string; alt: string }) {
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4)",
           }}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }
