@@ -1,4 +1,5 @@
 import { BookDrawer } from "@/components/BookDrawer";
+import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
@@ -18,10 +19,20 @@ interface Book {
 }
 
 function Library() {
-  const [books, setBooks] = useState<Book[]>([]);
+  const {
+    data: books,
+    loading,
+    error,
+  } = useDataCache<Book[]>("books", async () => {
+    const res = await client.api.books.$get();
+    if (!res.ok) {
+      throw new Error("Failed to fetch books");
+    }
+    const data = await res.json();
+    return data.books;
+  });
+
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [, setSearchParams] = useSearchParams();
   const [isMobile, setIsMobile] = useState(false);
@@ -38,32 +49,11 @@ function Library() {
   }, []);
 
   useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await client.api.books.$get();
+    if (!books) {
+      setFilteredBooks([]);
+      return;
+    }
 
-        if (!res.ok) {
-          setError("Failed to fetch books");
-          return;
-        }
-
-        const data = await res.json();
-        setBooks(data.books);
-        setFilteredBooks(data.books);
-      } catch (error) {
-        console.error("Failed to fetch books:", error);
-        setError("Failed to load books");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBooks();
-  }, []);
-
-  useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredBooks(books);
       return;

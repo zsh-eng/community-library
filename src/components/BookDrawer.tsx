@@ -1,5 +1,5 @@
+import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
-import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import type { AppType } from "../../worker/index";
 import { BookDetails, type BookDetail } from "./BookDetails";
@@ -10,49 +10,36 @@ const client = hc<AppType>(import.meta.env.BASE_URL);
 export function BookDrawer() {
   const [searchParams, setSearchParams] = useSearchParams();
   const bookId = searchParams.get("book");
-  const [book, setBook] = useState<BookDetail | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const {
+    data: book,
+    loading,
+    error,
+  } = useDataCache<BookDetail>(
+    bookId ? `book-${bookId}` : null,
+    async () => {
+      if (!bookId) throw new Error("No book ID provided");
+
+      const res = await client.api.books[":id"].$get({
+        param: { id: bookId },
+      });
+
+      if (!res.ok) {
+        throw new Error("Book not found");
+      }
+
+      const data = await res.json();
+      return data.book;
+    },
+    { enabled: !!bookId },
+  );
 
   const isOpen = !!bookId;
-
-  useEffect(() => {
-    const fetchBook = async () => {
-      if (!bookId) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await client.api.books[":id"].$get({
-          param: { id: bookId },
-        });
-
-        if (!res.ok) {
-          setError("Book not found");
-          return;
-        }
-
-        const data = await res.json();
-        setBook(data.book);
-      } catch (error) {
-        console.error("Failed to fetch book:", error);
-        setError("Failed to load book details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (bookId) {
-      fetchBook();
-    }
-  }, [bookId]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       searchParams.delete("book");
       setSearchParams(searchParams);
-      setBook(null);
-      setError(null);
     }
   };
 

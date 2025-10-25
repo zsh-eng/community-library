@@ -1,46 +1,37 @@
+import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
-import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router";
 import type { AppType } from "../worker/index";
-import { ArrowLeft } from "lucide-react";
 import { BookDetails, type BookDetail } from "./components/BookDetails";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
 function Book() {
   const { id } = useParams<{ id: string }>();
-  const [book, setBook] = useState<BookDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchBook = async () => {
-      if (!id) return;
+  const {
+    data: book,
+    loading,
+    error,
+  } = useDataCache<BookDetail>(
+    id ? `book-${id}` : null,
+    async () => {
+      if (!id) throw new Error("No book ID provided");
 
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await client.api.books[":id"].$get({
-          param: { id },
-        });
+      const res = await client.api.books[":id"].$get({
+        param: { id },
+      });
 
-        if (!res.ok) {
-          setError("Book not found");
-          return;
-        }
-
-        const data = await res.json();
-        setBook(data.book);
-      } catch (error) {
-        console.error("Failed to fetch book:", error);
-        setError("Failed to load book details");
-      } finally {
-        setLoading(false);
+      if (!res.ok) {
+        throw new Error("Book not found");
       }
-    };
 
-    fetchBook();
-  }, [id]);
+      const data = await res.json();
+      return data.book;
+    },
+    { enabled: !!id },
+  );
 
   if (loading) {
     return null;
