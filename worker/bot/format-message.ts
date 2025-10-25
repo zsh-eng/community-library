@@ -94,14 +94,16 @@ function formatDate(date: Date): string {
 
 export const WELCOME_MESSAGE = `📚 Welcome to the Community Library Bot\\!
 
-To *search* for books, your can type the book or author's name:
+To *search* for books, you can type the book or author's name:
 E\\.g\\. "harry potter"
 
-To *borrow \\/ return* a book, scan the QR code on the physical book
+To *borrow or return* a book, scan the QR code on the physical book
 
 Available commands:
 \\/start \\- Start the bot and view this message
 \\/mybooks \\- View your currently borrowed books
+
+Visit our website [to view the full catalogue](https://library.zsheng.app)
 
 Scan a QR code on any book to borrow it\\!`;
 
