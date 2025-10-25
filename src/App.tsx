@@ -1,8 +1,8 @@
-import { BrowserRouter, Route, Routes } from "react-router";
 import BookWrapper from "@/components/BookWrapper";
-import Library from "./Library";
-import { ThemeProvider } from "./components/theme-provider";
-import { DataCacheProvider } from "./contexts/DataCacheContext";
+import { ThemeProvider } from "@/components/theme-provider";
+import { DataCacheProvider } from "@/contexts/DataCacheContext";
+import Library from "@/Library";
+import { BrowserRouter, Route, Routes } from "react-router";
 
 function App() {
   return (
