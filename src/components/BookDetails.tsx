@@ -59,8 +59,10 @@ function BookImage({ src, alt }: { src: string; alt: string }) {
   }
 
   return (
-    <div className="w-80 perspective-1000">
-      {!imageLoaded && <Skeleton className="w-80 h-[480px] rounded-lg" />}
+    <div className="w-60 md:w-80 perspective-1000">
+      {!imageLoaded && (
+        <Skeleton className="w-60 md:w-80 h-[480px] rounded-lg" />
+      )}
       <div
         className={cn(
           "relative transition-transform duration-300 ease-out cursor-pointer",
