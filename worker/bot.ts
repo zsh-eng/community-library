@@ -98,7 +98,10 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
       if (isAvailable) {
         keyboard.text("📚 Borrow this book", `borrow:${qrCodeId}`);
       } else if (isBorrowedByCurrentUser) {
-        keyboard.text("✅ Return this book", `return:${qrCodeId}`);
+        keyboard.text(
+          `✅ I have returned this book to ${copyDetails.location}`,
+          `return:${qrCodeId}`,
+        );
       } else {
         // Book borrowed by someone else - no action available
         const message = formatBookCopyBorrowedMessage(copyDetails);

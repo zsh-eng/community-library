@@ -37,6 +37,7 @@ export interface BookCopyDetails {
     description: string;
     imageUrl?: string | null;
   };
+  location: string;
   currentLoan?: {
     telegramUserId: number;
     dueDate: Date;
@@ -218,7 +219,10 @@ export function formatBookCopyDetailsMessage(
 by ${copyDetails.book.author}
 
 Copy #${copyDetails.copyNumber}
-Status: ${isAvailable ? "✅ Available" : "📖 Borrowed by you"}`;
+Status: ${isAvailable ? "✅ Available" : "📖 Borrowed by you"}
+
+${!isAvailable && `Once you've returned the book to ${copyDetails.location}, press the button below.`}
+`;
 
   return escapeMarkdown(plainMessage);
 }
@@ -279,7 +283,8 @@ Copy #${result.copyNumber}
 
 📅 Due date: ${dueDate}
 
-Enjoy your reading! Remember to return it on time.`;
+Enjoy your reading!
+Remember to return it on time.`;
 
   return escapeMarkdown(plainMessage);
 }

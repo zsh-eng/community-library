@@ -23,6 +23,7 @@ export async function getBookCopyDetails(db: Database, qrCodeId: string) {
         where: isNull(loans.returnedAt),
         limit: 1,
       },
+      location: true,
     },
   });
 
@@ -36,6 +37,7 @@ export async function getBookCopyDetails(db: Database, qrCodeId: string) {
     status: bookCopy.status,
     book: bookCopy.book,
     currentLoan: bookCopy.loans[0] || null,
+    location: bookCopy.location.name,
   };
 }
 
