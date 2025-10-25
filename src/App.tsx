@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router";
-import Book from "./Book";
+import BookWrapper from "@/components/BookWrapper";
 import Library from "./Library";
 import { ThemeProvider } from "./components/theme-provider";
 import { DataCacheProvider } from "./contexts/DataCacheContext";
@@ -11,7 +11,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Library />} />
-            <Route path="/book/:id" element={<Book />} />
+            <Route path="/book/:slug" element={<BookWrapper />} />
           </Routes>
         </BrowserRouter>
       </DataCacheProvider>

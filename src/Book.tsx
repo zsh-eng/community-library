@@ -1,15 +1,17 @@
 import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
 import { ArrowLeft } from "lucide-react";
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import type { AppType } from "../worker/index";
 import { BookDetails, type BookDetail } from "./components/BookDetails";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
-function Book() {
-  const { id } = useParams<{ id: string }>();
+interface BookProps {
+  id: string;
+}
 
+function Book({ id }: BookProps) {
   const {
     data: book,
     loading,

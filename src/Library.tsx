@@ -1,5 +1,6 @@
 import { BookDrawer } from "@/components/BookDrawer";
 import { useDataCache } from "@/hooks/use-data-cache";
+import { generateBookSlug } from "@/lib/utils";
 import { hc } from "hono/client";
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
@@ -139,7 +140,7 @@ function Library() {
                 {filteredBooks.map((book) => (
                   <motion.div key={book.id}>
                     <Link
-                      to={`/book/${book.id}`}
+                      to={`/book/${generateBookSlug(book.title, book.id)}`}
                       className="group cursor-pointer block"
                       onClick={(e) => handleBookClick(book.id, e)}
                     >
