@@ -107,9 +107,6 @@ Visit our website [to view the full catalogue](https://library.zsheng.app)
 
 Scan a QR code on any book to borrow it\\!`;
 
-export const SEARCH_USAGE =
-  "Usage: /search <query>\n\nExample: /search piketty";
-
 export const BOOK_USAGE =
   "Usage: /book <isbn> or /book<isbn>\n\nExample: /book 9780674430006";
 
