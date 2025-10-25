@@ -221,7 +221,7 @@ by ${copyDetails.book.author}
 Copy #${copyDetails.copyNumber}
 Status: ${isAvailable ? "✅ Available" : "📖 Borrowed by you"}
 
-${!isAvailable && `Once you've returned the book to ${copyDetails.location}, press the button below.`}
+${isAvailable ? "" : `Once you've returned the book to ${copyDetails.location}, press the button below.`}
 `;
 
   return escapeMarkdown(plainMessage);
