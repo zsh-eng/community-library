@@ -224,6 +224,11 @@ export async function searchBooks(
 ) {
   const searchPattern = `%${query}%`;
 
+  // LIKE-based search is acceptable here since we're dealing with hundreds of books.
+  // Full table scans are fast at this scale (~milliseconds), and this approach keeps
+  // the codebase simple without needing FTS5 or additional indexes. We can revisit
+  // if the library grows to thousands of books or if search performance / number of row
+  // reads becomes an issue.
   const results = await db.query.books.findMany({
     where: or(
       like(books.title, searchPattern),
