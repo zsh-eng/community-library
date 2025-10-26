@@ -230,12 +230,12 @@ export function BookDetails({ book }: BookDetailsProps) {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:block max-w-[1400px] mx-auto">
+      <div className="hidden lg:block max-w-[1200px] mx-auto">
         <div className="flex gap-16 items-start">
           {/* Image Column - Centered and Sticky */}
           {book.imageUrl && (
             <motion.div
-              className="flex-1 flex justify-end sticky top-8 pr-16"
+              className="flex-1 flex justify-end sticky top-12 xl:pr-24 mt-12"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
@@ -251,7 +251,7 @@ export function BookDetails({ book }: BookDetailsProps) {
           <div
             className={cn(
               "w-full",
-              book.imageUrl ? "max-w-[60ch]" : "max-w-4xl mx-auto",
+              book.imageUrl ? "max-w-[56ch]" : "max-w-4xl mx-auto",
             )}
           >
             <motion.h1
