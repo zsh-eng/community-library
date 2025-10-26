@@ -35,11 +35,11 @@ function Book({ id }: BookProps) {
     { enabled: !!id },
   );
 
-  if (loading) {
+  if (loading || !book) {
     return null;
   }
 
-  if (error || !book) {
+  if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Link
