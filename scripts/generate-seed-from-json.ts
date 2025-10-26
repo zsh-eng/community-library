@@ -34,7 +34,7 @@ const LOCATION_MAP: Record<string, number> = {
 };
 
 const IMAGE_BASE_PATH =
-  "https://cdn.jsdelivr.net/gh/zsh-eng/community-library-images@main/assets/books";
+  "https://cdn.jsdelivr.net/gh/zsh-eng/community-library-images@main/assets/covers";
 
 // Helper to generate a random 6-character alphanumeric string in uppercase
 function generateRandomSuffix(): string {
@@ -68,14 +68,14 @@ function findJsonFile(batchDir: string): string | null {
 function renameImagesByIsbn(batchDir: string, books: Book[]): void {
   console.log("\nRenaming images based on ISBN...");
 
-  // Get all jpg files in the batch directory
+  // Get all webp files in the batch directory
   const files = readdirSync(batchDir);
   const imageFiles = files
-    .filter((f) => f.toLowerCase().endsWith(".jpg"))
+    .filter((f) => f.toLowerCase().endsWith(".webp"))
     .sort((a, b) => {
       // Extract numbers from filenames for natural sorting
-      const numA = parseInt(a.match(/\d+/)?.[0] || "0");
-      const numB = parseInt(b.match(/\d+/)?.[0] || "0");
+      const numA = parseInt(a.match(/(\d+)(?=\.webp)/)?.[1] || "0");
+      const numB = parseInt(b.match(/(\d+)(?=\.webp)/)?.[1] || "0");
       return numA - numB;
     });
   console.log(imageFiles);
@@ -104,7 +104,7 @@ function renameImagesByIsbn(batchDir: string, books: Book[]): void {
 
     // Add suffix for duplicates (second copy gets -1, third gets -2, etc.)
     const suffix = currentIsbnCount > 0 ? `-${currentIsbnCount}` : "";
-    const newFilename = `${book.isbn}${suffix}.jpg`;
+    const newFilename = `${book.isbn}${suffix}.webp`;
     const newPath = join(batchDir, newFilename);
 
     // Skip if already renamed
@@ -150,7 +150,7 @@ function generateBooksSql(books: Book[], locationName: string): string {
       const description = book.description.replace(/'/g, "''");
       const author = book.author.replace(/'/g, "''");
 
-      const updatedImageUrl = `${IMAGE_BASE_PATH}/${locationName}-scans/${book.isbn}.jpg`;
+      const updatedImageUrl = `${IMAGE_BASE_PATH}/${locationName}-scans/${book.isbn}.webp`;
       const imageUrl = updatedImageUrl.replace(/'/g, "''");
 
       return `  (${id}, '${isbn}', '${title}', '${description}', '${author}', '${imageUrl}', strftime('%s', 'now'))`;
@@ -263,10 +263,10 @@ function main() {
   const books = readBooksData(jsonFilePath);
   console.log(`Found ${books.length} book entries`);
 
-  // Adjust book IDs with offset
-  const adjustedBooks = books.map((book) => ({
+  // Preprocess: Assign sequential IDs starting from idOffset
+  const adjustedBooks = books.map((book, index) => ({
     ...book,
-    id: book.id - books[0].id + idOffset, // Normalize then apply offset
+    id: idOffset + index,
   }));
 
   console.log(
@@ -289,7 +289,6 @@ function main() {
   const tempDir = join(process.cwd(), "temp");
   const outputFile = join(
     tempDir,
-
     `seed-from-json-batch-${batchNumber}-${locationName}.sql`,
   );
 
@@ -319,7 +318,7 @@ function main() {
   console.log(`- Loans: 0 (all books available)`);
   console.log(`- Copy ID format: COPY-<6 random alphanumeric chars>`);
   console.log(
-    `- Image path: ${IMAGE_BASE_PATH}/${locationName}-scans/<isbn>.jpg`,
+    `- Image path: ${IMAGE_BASE_PATH}/${locationName}-scans/<isbn>.webp`,
   );
   console.log(`\nNext step: Run image processing script`);
   console.log(`  bun run process-images.ts ${batchNumber}`);
