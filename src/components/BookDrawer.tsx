@@ -44,6 +44,9 @@ export function BookDrawer() {
   };
 
   return (
+    // Unfortunately we cannot select the text in the book details
+    // because we want to preserve the modal behaviour
+    // If we add modal=false, then the user cannot just tap to close the drawer
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[90vh]">
         <div className="overflow-y-auto flex-1 pb-12">
