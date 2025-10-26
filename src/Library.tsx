@@ -138,7 +138,7 @@ function Library() {
                 }}
               >
                 {filteredBooks.map((book) => (
-                  <motion.div key={book.id}>
+                  <div key={book.id} className="relative isolate">
                     <Link
                       to={`/book/${generateBookSlug(book.title, book.id)}`}
                       className="group cursor-pointer block"
@@ -146,12 +146,13 @@ function Library() {
                     >
                       <div className="space-y-3">
                         {/* Book Cover */}
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:scale-[102%]">
+                        <div className="aspect-[2/3] relative bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:z-10">
                           {book.imageUrl ? (
                             <img
+                              loading="lazy"
                               src={book.imageUrl}
                               alt={book.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:scale-[102%] rounded-sm transition-all duration-150"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-muted">
@@ -173,7 +174,7 @@ function Library() {
                         </div>
                       </div>
                     </Link>
-                  </motion.div>
+                  </div>
                 ))}
               </motion.div>
             )}
