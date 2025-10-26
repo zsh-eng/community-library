@@ -93,6 +93,8 @@ function formatDate(date: Date): string {
 // MESSAGE CONSTANTS
 // ============================================================================
 
+const DESCRIPTION_LENGTH_LIMIT = 800;
+
 export const WELCOME_MESSAGE = `📚 Welcome to the Community Library Bot\\!
 
 To *search* for books, you can type the book or author's name:
@@ -140,6 +142,14 @@ export const RETURN_SUCCESS = "✅ Book returned successfully!";
 // MESSAGE FORMATTING FUNCTIONS
 // ============================================================================
 
+function formatBookDetailsDescription(description: string): string {
+  if (description.length <= DESCRIPTION_LENGTH_LIMIT) {
+    return description;
+  }
+
+  return `${description.substring(0, DESCRIPTION_LENGTH_LIMIT)}...`;
+}
+
 /**
  * Format book details message
  */
@@ -157,7 +167,7 @@ export function formatBookDetailsMessage(bookDetails: BookDetails): string {
   const plainMessage = `📚 ${bookDetails.title}
 by ${bookDetails.author}
 
-${bookDetails.description}
+${formatBookDetailsDescription(bookDetails.description)}
 
 📊 Availability: ${bookDetails.availableCopies} of ${bookDetails.totalCopies} ${bookDetails.totalCopies === 1 ? "copy" : "copies"} available
 
