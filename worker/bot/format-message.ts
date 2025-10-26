@@ -98,7 +98,7 @@ const DESCRIPTION_LENGTH_LIMIT = 800;
 export const WELCOME_MESSAGE = `📚 Welcome to the Community Library Bot\\!
 
 To *search* for books, you can type the book or author's name:
-E\\.g\\. "harry potter"
+E\\.g\\. "ulysses"
 
 To *borrow or return* a book, scan the QR code on the physical book
 
