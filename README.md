@@ -112,3 +112,10 @@ Note: seeding of locations is done in the migration file.
 2. Comment out the "driver" line in `drizzle.config.ts`
 3. Add the URL to the wrangler SQLite database as the dbCredentials.url key.
 4. Run `bunx drizzle-kit studio`
+
+Commands for seeding
+
+```shell
+bun run scripts/generate-seed-from-json.ts 1 elm
+pnpm dlx wrangler d1 execute community-library-db --remote --file=./temp/seed-from-json-batch-1-elm.sql
+```
