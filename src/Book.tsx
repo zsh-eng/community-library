@@ -57,7 +57,7 @@ function Book({ id }: BookProps) {
     <div className="container mx-auto px-4 py-8">
       <Link
         to="/"
-        className="text-muted-foreground hover:text-primary transition duration-300 hover:scale-105 group"
+        className="text-muted-foreground hover:text-primary transition duration-300 hover:scale-105 group absolute top-8 left-8"
       >
         <ArrowLeft className="group-hover:-translate-x-1 transition" />
       </Link>
