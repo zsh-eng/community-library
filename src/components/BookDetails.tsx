@@ -255,7 +255,7 @@ export function BookDetails({ book }: BookDetailsProps) {
             )}
           >
             <motion.h1
-              className="text-2xl font-bold font-serif"
+              className="text-3xl font-bold font-serif"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -280,7 +280,7 @@ export function BookDetails({ book }: BookDetailsProps) {
 
             {book.isbn && (
               <motion.p
-                className="text-xs text-muted-foreground mb-8"
+                className="text-sm text-muted-foreground mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -301,7 +301,7 @@ export function BookDetails({ book }: BookDetailsProps) {
             )}
 
             <motion.h2
-              className="mt-12 mb-8 text-xl font-bold font-serif italic"
+              className="mt-12 mb-8 text-2xl font-bold font-serif italic"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
