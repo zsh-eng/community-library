@@ -46,7 +46,7 @@ export function BookDrawer() {
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[90vh]">
-        <div className="overflow-y-auto flex-1 pb-12 pt-4">
+        <div className="overflow-y-auto flex-1 pb-12">
           {error && (
             <div className="px-4 py-8">
               <p className="text-lg text-red-600">{error}</p>
