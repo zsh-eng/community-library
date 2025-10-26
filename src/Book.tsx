@@ -54,7 +54,7 @@ function Book({ id }: BookProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-16">
       <Link
         to="/"
         className="text-muted-foreground hover:text-primary transition duration-300 hover:scale-105 group absolute top-8 left-8"
