@@ -1,6 +1,6 @@
 import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AppType } from "../worker/index";
@@ -101,40 +101,16 @@ function Canvas() {
         transition={{ duration: 1 }}
       >
         {/* Search Bar */}
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
-          {!showLibrary ? (
-            <button
-              onClick={() => setShowLibrary(true)}
-              className="w-full flex items-center gap-3 px-6 py-3 bg-background/80 backdrop-blur-sm border border-border rounded-full shadow-lg hover:shadow-xl hover:scale-[101%] transition-all cursor-pointer group"
-            >
-              <Search className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
-              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                Search library
-              </span>
-            </button>
-          ) : (
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="Search by title or author"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-12 py-3 bg-background/80 backdrop-blur-sm border border-border rounded-full outline-none text-base focus:ring-1 focus:ring-ring focus:border-transparent transition-all shadow-lg"
-                autoFocus
-              />
-              <button
-                onClick={() => {
-                  setShowLibrary(false);
-                  setSearchQuery("");
-                }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                title="Close search"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          )}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
+          <button
+            onClick={() => setShowLibrary(true)}
+            className="w-full flex items-center gap-3 px-6 py-3 bg-background/80 backdrop-blur-sm border border-border rounded-full shadow-lg hover:shadow-xl hover:scale-[101%] transition-all cursor-pointer group"
+          >
+            <Search className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
+            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+              Search library
+            </span>
+          </button>
         </div>
 
         {/* Horizontal scrolling container */}
@@ -166,12 +142,12 @@ function Canvas() {
 
       {/* Library Overlay */}
       <AnimatePresence>
-        {showLibrary && (
+        {showLibrary && books && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.1 }}
             className="fixed inset-0 z-40 flex items-center justify-center p-4 md:p-8 bg-black/50 backdrop-blur-sm"
             onClick={() => {
               setShowLibrary(false);
@@ -179,15 +155,13 @@ function Canvas() {
             }}
           >
             <motion.div
-              className="h-full rounded-2xl shadow-2xl overflow-scroll mt-16"
+              className="rounded-2xl shadow-2xl overflow-scroll mt-16"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.1 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <LibraryGrid
-                books={books || []}
-                loading={loading}
-                searchQuery={searchQuery}
-                isOverlay={true}
-              />
+              <LibraryGrid books={books} searchQuery={searchQuery} />
             </motion.div>
           </motion.div>
         )}

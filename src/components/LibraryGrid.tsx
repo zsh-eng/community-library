@@ -15,17 +15,10 @@ interface Book {
 
 interface LibraryGridProps {
   books: Book[];
-  loading?: boolean;
   searchQuery: string;
-  isOverlay?: boolean;
 }
 
-export function LibraryGrid({
-  books,
-  loading = false,
-  searchQuery,
-  isOverlay = false,
-}: LibraryGridProps) {
+export function LibraryGrid({ books, searchQuery }: LibraryGridProps) {
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [, setSearchParams] = useSearchParams();
   const [isMobile, setIsMobile] = useState(false);
@@ -72,31 +65,22 @@ export function LibraryGrid({
   return (
     <>
       <BookDrawer />
-      <div
-        className={`${isOverlay ? "bg-background/80 backdrop-blur-md" : "bg-background"}`}
-      >
+      <div className={"bg-background/80 backdrop-blur-md"}>
         <div className="max-w-7xl mx-auto px-8">
           {/* Grid Layout */}
-          <div className={isOverlay ? "pt-12 pb-24" : "pt-8 pb-24"}>
-            {loading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5  gap-6">
-                {/* Skeleton loading placeholders */}
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="space-y-3 animate-pulse">
-                    <div className="aspect-[2/3] bg-muted rounded-sm" />
-                    <div className="space-y-2">
-                      <div className="h-4 bg-muted rounded" />
-                      <div className="h-3 bg-muted rounded w-2/3" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredBooks.length === 0 ? (
+          <div className={"pt-12 pb-24"}>
+            {filteredBooks.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-lg text-muted-foreground">
                   {searchQuery
                     ? "No books found matching your search"
                     : "No books in library"}
+                </p>
+              </div>
+            ) : searchQuery === "" ? (
+              <div className="text-center py-16">
+                <p className="text-lg text-muted-foreground">
+                  "Start searching..."
                 </p>
               </div>
             ) : (
