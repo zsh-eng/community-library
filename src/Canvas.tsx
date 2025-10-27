@@ -1,9 +1,9 @@
 import { useDataCache } from "@/hooks/use-data-cache";
-import { generateBookSlug } from "@/lib/utils";
 import { hc } from "hono/client";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 import type { AppType } from "../worker/index";
+import { BookColumn } from "./components/BookColumn";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
@@ -30,8 +30,6 @@ function Canvas() {
     return data.books;
   });
 
-  const viewportRef = useRef<HTMLDivElement>(null);
-
   // Partition books into columns with 7-10 books each
   const columns = useMemo(() => {
     if (!books || books.length === 0) return [];
@@ -52,46 +50,14 @@ function Canvas() {
 
     return cols;
   }, [books]);
-  // Calculate canvas dimensions
-  const canvasDimensions = useMemo(() => {
-    if (columns.length === 0) {
-      return { width: 2000, height: 2000 };
-    }
 
-    const BOOK_WIDTH = 300;
-    const COLUMN_GAP = 48;
-    const BOOK_GAP = 24;
-    const BOOK_INFO_HEIGHT = 80; // Approximate height for title + author
-    const PADDING = 200;
-
-    // Estimate book heights (we'll use an average)
-    const ESTIMATED_BOOK_HEIGHT = 450;
-
-    // Calculate total width needed
-    const totalWidth =
-      columns.length * BOOK_WIDTH +
-      (columns.length - 1) * COLUMN_GAP +
-      PADDING * 2;
-
-    // Calculate max column height
-    const maxBooksInColumn = Math.max(...columns.map((col) => col.length));
-    const maxHeight =
-      maxBooksInColumn * (ESTIMATED_BOOK_HEIGHT + BOOK_INFO_HEIGHT + BOOK_GAP);
-
-    return {
-      width: Math.max(totalWidth, 2000),
-      height: Math.max(maxHeight, 2000),
-    };
-  }, [columns]);
-
-  // Center the viewport on mount
-  useEffect(() => {
-    if (viewportRef.current && books && books.length > 0) {
-      const viewport = viewportRef.current;
-      viewport.scrollLeft = (viewport.scrollWidth - viewport.clientWidth) / 2;
-      viewport.scrollTop = (viewport.scrollHeight - viewport.clientHeight) / 2;
-    }
-  }, [books]);
+  // Generate random speeds and directions for each column
+  const columnConfigs = useMemo(() => {
+    return Array.from({ length: columns.length }).map((_, index) => ({
+      speed: 0.3 + Math.random() * 1.2, // Random speed between 0.3 and 1.5 pixels per frame
+      startDirection: index % 2 === 0 ? ("down" as const) : ("up" as const), // Alternate starting directions
+    }));
+  }, [columns.length]);
 
   if (error) {
     return (
@@ -110,10 +76,7 @@ function Canvas() {
   }
 
   const BOOK_WIDTH = 300;
-  const COLUMN_GAP = 48;
-  const BOOK_GAP = 24;
-  const BOOK_INFO_HEIGHT = 80;
-  const ESTIMATED_BOOK_HEIGHT = 450;
+  const COLUMN_WIDTH = BOOK_WIDTH + 48; // Book width + horizontal padding
 
   return (
     <div className="fixed inset-0 bg-background">
@@ -121,7 +84,9 @@ function Canvas() {
       <div className="fixed top-4 left-4 z-10 bg-black/80 text-white px-4 py-3 rounded-lg text-sm pointer-events-none">
         <div>Books: {books?.length || 0}</div>
         <div>Columns: {columns.length}</div>
-        <div className="text-xs opacity-70 mt-1">Drag to pan</div>
+        <div className="text-xs opacity-70 mt-1">
+          Scroll horizontally, hover to slow
+        </div>
       </div>
 
       {/* Back to Library link */}
@@ -132,106 +97,28 @@ function Canvas() {
         ← Back to Library
       </Link>
 
-      {/* Viewport */}
+      {/* Horizontal scrolling container */}
       <div
-        ref={viewportRef}
-        className="w-full h-full overflow-auto"
+        className="w-full h-full overflow-x-auto overflow-y-hidden"
         style={{
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
+          scrollbarWidth: "thin",
         }}
       >
-        <style>{`
-          #canvas-viewport::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-
-        {/* Canvas */}
+        {/* Columns container */}
         <div
-          className="relative bg-background"
+          className="h-full flex"
           style={{
-            width: `${canvasDimensions.width}px`,
-            height: `${canvasDimensions.height}px`,
+            width: `${columns.length * COLUMN_WIDTH}px`,
           }}
         >
-          {/* Columns container - centered in canvas */}
-          <div
-            className="absolute"
-            style={{
-              left: "2%",
-              top: "52%",
-            }}
-          >
-            {columns.map((columnBooks, columnIndex) => {
-              const columnHeight =
-                columnBooks.length *
-                (ESTIMATED_BOOK_HEIGHT + BOOK_INFO_HEIGHT + BOOK_GAP);
-
-              return (
-                <div
-                  key={columnIndex}
-                  className="absolute"
-                  style={{
-                    left: `${columnIndex * (BOOK_WIDTH + COLUMN_GAP)}px`,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                  }}
-                >
-                  {columnBooks.map((book) => (
-                    <Link
-                      key={book.id}
-                      to={`/book/${generateBookSlug(book.title, book.id)}`}
-                      className="group cursor-pointer block mb-6"
-                      style={{
-                        width: `${BOOK_WIDTH}px`,
-                      }}
-                    >
-                      <div className="space-y-3">
-                        {/* Book Cover */}
-                        <div className="relative bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:scale-105">
-                          {book.imageUrl ? (
-                            <img
-                              loading="lazy"
-                              src={book.imageUrl}
-                              alt={book.title}
-                              className="w-full rounded-sm transition-all duration-150"
-                              style={{
-                                width: `${BOOK_WIDTH}px`,
-                                height: "auto",
-                              }}
-                            />
-                          ) : (
-                            <div
-                              className="w-full flex items-center justify-center bg-muted"
-                              style={{
-                                width: `${BOOK_WIDTH}px`,
-                                height: "400px",
-                              }}
-                            >
-                              <p className="text-xs text-muted-foreground text-center px-2">
-                                No cover
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Book Info */}
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors font-serif">
-                            {book.title}
-                          </h3>
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            {book.author}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
+          {columns.map((columnBooks, columnIndex) => (
+            <BookColumn
+              key={columnIndex}
+              books={columnBooks}
+              speed={columnConfigs[columnIndex].speed}
+              startDirection={columnConfigs[columnIndex].startDirection}
+            />
+          ))}
         </div>
       </div>
     </div>
