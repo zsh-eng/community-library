@@ -83,10 +83,10 @@ function Canvas() {
     return null;
   }
 
-  const BOOK_WIDTH = isMobile ? 160 : 300;
-  const COLUMN_GAP = isMobile ? 24 : 32;
-  const COLUMN_WIDTH = BOOK_WIDTH + COLUMN_GAP; // Book width + gap between columns
-  const COLUMNS_CONTAINER_WIDTH = COLUMN_WIDTH * columns.length + 60; // Add some spacing on the left and right
+  const bookWidth = isMobile ? 160 : 300;
+  const columnGap = isMobile ? 24 : 32;
+  const columnWidth = bookWidth + columnGap; // Book width + gap between columns
+  const columnsContainerWidth = columnWidth * columns.length + 60; // Add some spacing on the left and right
 
   return (
     <motion.div
@@ -99,20 +99,17 @@ function Canvas() {
       <div
         className="w-full h-full overflow-x-auto overflow-y-hidden"
         ref={columnContainersRef}
-        style={{
-          scrollbarWidth: "thin",
-        }}
       >
         {/* Columns container */}
         <div
           className="h-full flex justify-center gap-6 lg:gap-8 px-8"
           style={{
-            width: `${COLUMNS_CONTAINER_WIDTH}px`,
+            width: `${columnsContainerWidth}px`,
           }}
         >
           {columns.map((columnBooks, columnIndex) => (
             <BookColumn
-              bookWidth={BOOK_WIDTH}
+              bookWidth={bookWidth}
               key={columnIndex}
               books={columnBooks}
               cycleSpeedInSeconds={
