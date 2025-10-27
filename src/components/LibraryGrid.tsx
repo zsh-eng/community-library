@@ -77,7 +77,7 @@ export function LibraryGrid({ books }: LibraryGridProps) {
         }
       >
         {/* Search Bar */}
-        <div className="flex-shrink-0 px-2 pt-4 pb-4">
+        <div className="flex-shrink-0 px-2 lg:px-4 pt-4">
           <div className="relative w-full mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground pointer-events-none" />
             <input
@@ -85,7 +85,7 @@ export function LibraryGrid({ books }: LibraryGridProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for books..."
-              className="w-full pl-12 pr-4 py-3 bg-background/60 backdrop-blur-sm rounded-full text-lg focus:outline-none"
+              className="w-full pl-12 pr-4 py-3 bg-transparent rounded-full text-lg focus:outline-none"
               autoFocus
             />
           </div>

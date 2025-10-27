@@ -163,11 +163,11 @@ function Canvas() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
-            className="fixed inset-0 z-40 flex items-center justify-center p-4 md:p-8 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-40 flex items-center justify-center p-0 md:p-8 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowLibrary(false)}
           >
             <motion.div
-              className="rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full h-[85vh]"
+              className="rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full h-full lg:h-[85vh]"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.1 }}
