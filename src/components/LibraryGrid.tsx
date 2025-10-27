@@ -1,4 +1,5 @@
 import { BookDrawer } from "@/components/BookDrawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { generateBookSlug } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
@@ -25,18 +26,7 @@ export function LibraryGrid({ books }: LibraryGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [, setSearchParams] = useSearchParams();
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile view
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!books) {
