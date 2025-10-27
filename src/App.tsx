@@ -11,8 +11,8 @@ function App() {
       <DataCacheProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Library />} />
-            <Route path="/canvas" element={<Canvas />} />
+            <Route path="/" element={<Canvas />} />
+            <Route path="/library" element={<Library />} />
             <Route path="/book/:slug" element={<BookWrapper />} />
           </Routes>
         </BrowserRouter>
