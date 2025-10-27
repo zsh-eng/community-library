@@ -15,18 +15,22 @@ interface BookColumnProps {
   books: Book[];
   speed: number; // duration multiplier (higher = slower), best to have 30-60 seconds per cycle
   startDirection: "up" | "down";
+  bookWidth?: number;
 }
 
-const BOOK_WIDTH = 300;
-
-export function BookColumn({ books, speed, startDirection }: BookColumnProps) {
+export function BookColumn({
+  books,
+  speed,
+  startDirection,
+  bookWidth = 300,
+}: BookColumnProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       className="h-full overflow-visible relative"
       style={{
-        width: `${BOOK_WIDTH + 48}px`,
+        width: `${bookWidth}px`,
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -49,6 +53,7 @@ export function BookColumn({ books, speed, startDirection }: BookColumnProps) {
           animationPlayState: isHovered ? "paused" : "running",
         }}
       >
+        {/* TODO: still need this?*/}
         {/* Render books twice for seamless loop */}
         {[...books, ...books].map((book, index) => (
           <Link
@@ -56,7 +61,7 @@ export function BookColumn({ books, speed, startDirection }: BookColumnProps) {
             to={`/book/${generateBookSlug(book.title, book.id)}`}
             className="group cursor-pointer block"
             style={{
-              width: `${BOOK_WIDTH}px`,
+              width: `${bookWidth}px`,
             }}
           >
             <div className="space-y-3">
@@ -68,7 +73,7 @@ export function BookColumn({ books, speed, startDirection }: BookColumnProps) {
                   willChange: "transform",
                 }}
               >
-                <div className="group-hover:scale-105 transition-transform duration-150">
+                <div className="group-hover:scale-103 transition-transform duration-150">
                   {book.imageUrl ? (
                     <img
                       loading="lazy"
@@ -76,7 +81,7 @@ export function BookColumn({ books, speed, startDirection }: BookColumnProps) {
                       alt={book.title}
                       className="w-full rounded-sm transition-all duration-150"
                       style={{
-                        width: `${BOOK_WIDTH}px`,
+                        width: `${bookWidth}px`,
                         height: "auto",
                       }}
                     />
@@ -84,7 +89,7 @@ export function BookColumn({ books, speed, startDirection }: BookColumnProps) {
                     <div
                       className="w-full flex items-center justify-center bg-muted"
                       style={{
-                        width: `${BOOK_WIDTH}px`,
+                        width: `${bookWidth}px`,
                         height: "400px",
                       }}
                     >

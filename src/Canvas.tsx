@@ -1,8 +1,10 @@
 import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
+import { motion } from "motion/react";
 import { useEffect, useMemo, useRef } from "react";
 import type { AppType } from "../worker/index";
 import { BookColumn } from "./components/BookColumn";
+import { useIsMobile } from "./hooks/use-mobile";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
@@ -28,6 +30,7 @@ function Canvas() {
     const data = await res.json();
     return data.books;
   });
+  const isMobile = useIsMobile();
 
   // Partition books into columns with 7-10 books each
   const columns = useMemo(() => {
@@ -65,7 +68,7 @@ function Canvas() {
       const clientWidth = columnContainersRef.current.clientWidth;
       columnContainersRef.current.scrollLeft = (scrollWidth - clientWidth) / 2;
     }
-  }, []);
+  }, [columns.length]);
 
   if (error) {
     return (
@@ -76,19 +79,22 @@ function Canvas() {
   }
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <p className="text-lg text-muted-foreground">Loading canvas...</p>
-      </div>
-    );
+    // TODO: add a loading state?
+    return null;
   }
 
-  const BOOK_WIDTH = 300;
-  const COLUMN_WIDTH = BOOK_WIDTH + 32; // Book width + gap between columns
-  const COLUMNS_CONTAINER_WIDTH = COLUMN_WIDTH * columns.length + 80; // Add some spacing on the left and right
+  const BOOK_WIDTH = isMobile ? 160 : 300;
+  const COLUMN_GAP = isMobile ? 24 : 32;
+  const COLUMN_WIDTH = BOOK_WIDTH + COLUMN_GAP; // Book width + gap between columns
+  const COLUMNS_CONTAINER_WIDTH = COLUMN_WIDTH * columns.length + 60; // Add some spacing on the left and right
 
   return (
-    <div className="fixed inset-0 bg-background">
+    <motion.div
+      className="fixed inset-0 bg-background"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+    >
       {/* Horizontal scrolling container */}
       <div
         className="w-full h-full overflow-x-auto overflow-y-hidden"
@@ -99,13 +105,14 @@ function Canvas() {
       >
         {/* Columns container */}
         <div
-          className="h-full flex justify-center gap-8 px-8"
+          className="h-full flex justify-center gap-6 lg:gap-8 px-8"
           style={{
             width: `${COLUMNS_CONTAINER_WIDTH}px`,
           }}
         >
           {columns.map((columnBooks, columnIndex) => (
             <BookColumn
+              bookWidth={BOOK_WIDTH}
               key={columnIndex}
               books={columnBooks}
               speed={columnConfigs[columnIndex].speed}
@@ -114,7 +121,7 @@ function Canvas() {
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
