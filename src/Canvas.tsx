@@ -1,7 +1,6 @@
 import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
-import { useMemo } from "react";
-import { Link } from "react-router";
+import { useEffect, useMemo, useRef } from "react";
 import type { AppType } from "../worker/index";
 import { BookColumn } from "./components/BookColumn";
 
@@ -54,10 +53,19 @@ function Canvas() {
   // Generate random speeds and directions for each column
   const columnConfigs = useMemo(() => {
     return Array.from({ length: columns.length }).map((_, index) => ({
-      speed: 0.3 + Math.random() * 1.2, // Random speed between 0.3 and 1.5 pixels per frame
+      speed: Math.random() * 30 + 50,
       startDirection: index % 2 === 0 ? ("down" as const) : ("up" as const), // Alternate starting directions
     }));
   }, [columns.length]);
+
+  const columnContainersRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (columnContainersRef.current) {
+      const scrollWidth = columnContainersRef.current.scrollWidth;
+      const clientWidth = columnContainersRef.current.clientWidth;
+      columnContainersRef.current.scrollLeft = (scrollWidth - clientWidth) / 2;
+    }
+  }, []);
 
   if (error) {
     return (
@@ -76,39 +84,24 @@ function Canvas() {
   }
 
   const BOOK_WIDTH = 300;
-  const COLUMN_WIDTH = BOOK_WIDTH + 48; // Book width + horizontal padding
+  const COLUMN_WIDTH = BOOK_WIDTH + 32; // Book width + gap between columns
+  const COLUMNS_CONTAINER_WIDTH = COLUMN_WIDTH * columns.length + 80; // Add some spacing on the left and right
 
   return (
     <div className="fixed inset-0 bg-background">
-      {/* Info panel */}
-      <div className="fixed top-4 left-4 z-10 bg-black/80 text-white px-4 py-3 rounded-lg text-sm pointer-events-none">
-        <div>Books: {books?.length || 0}</div>
-        <div>Columns: {columns.length}</div>
-        <div className="text-xs opacity-70 mt-1">
-          Scroll horizontally, hover to slow
-        </div>
-      </div>
-
-      {/* Back to Library link */}
-      <Link
-        to="/"
-        className="fixed top-4 right-4 z-10 bg-black/80 text-white px-4 py-3 rounded-lg text-sm hover:bg-black/90 transition-colors"
-      >
-        ← Back to Library
-      </Link>
-
       {/* Horizontal scrolling container */}
       <div
         className="w-full h-full overflow-x-auto overflow-y-hidden"
+        ref={columnContainersRef}
         style={{
           scrollbarWidth: "thin",
         }}
       >
         {/* Columns container */}
         <div
-          className="h-full flex"
+          className="h-full flex justify-center gap-8 px-8"
           style={{
-            width: `${columns.length * COLUMN_WIDTH}px`,
+            width: `${COLUMNS_CONTAINER_WIDTH}px`,
           }}
         >
           {columns.map((columnBooks, columnIndex) => (
