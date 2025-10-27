@@ -56,7 +56,7 @@ function Canvas() {
   // Generate random speeds and directions for each column
   const columnConfigs = useMemo(() => {
     return Array.from({ length: columns.length }).map((_, index) => ({
-      speed: Math.random() * 30 + 50,
+      cycleSpeedInSeconds: Math.random() * 30 + 50,
       startDirection: index % 2 === 0 ? ("down" as const) : ("up" as const), // Alternate starting directions
     }));
   }, [columns.length]);
@@ -115,7 +115,9 @@ function Canvas() {
               bookWidth={BOOK_WIDTH}
               key={columnIndex}
               books={columnBooks}
-              speed={columnConfigs[columnIndex].speed}
+              cycleSpeedInSeconds={
+                columnConfigs[columnIndex].cycleSpeedInSeconds
+              }
               startDirection={columnConfigs[columnIndex].startDirection}
             />
           ))}

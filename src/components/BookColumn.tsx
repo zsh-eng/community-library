@@ -13,14 +13,14 @@ interface Book {
 
 interface BookColumnProps {
   books: Book[];
-  speed: number; // duration multiplier (higher = slower), best to have 30-60 seconds per cycle
+  cycleSpeedInSeconds: number; // duration multiplier (higher = slower), best to have 30-60 seconds per cycle
   startDirection: "up" | "down";
   bookWidth?: number;
 }
 
 export function BookColumn({
   books,
-  speed,
+  cycleSpeedInSeconds,
   startDirection,
   bookWidth = 300,
 }: BookColumnProps) {
@@ -49,7 +49,7 @@ export function BookColumn({
       <div
         className="space-y-6 py-8"
         style={{
-          animation: `scroll-${startDirection} ${speed}s linear infinite`,
+          animation: `scroll-${startDirection} ${cycleSpeedInSeconds}s linear infinite`,
           animationPlayState: isHovered ? "paused" : "running",
         }}
       >
