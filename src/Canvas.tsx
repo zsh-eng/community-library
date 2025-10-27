@@ -114,7 +114,6 @@ function Canvas() {
     return data.books;
   });
   const [showLibrary, setShowLibrary] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   if (error) {
     return (
@@ -165,19 +164,16 @@ function Canvas() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
             className="fixed inset-0 z-40 flex items-center justify-center p-4 md:p-8 bg-black/50 backdrop-blur-sm"
-            onClick={() => {
-              setShowLibrary(false);
-              setSearchQuery("");
-            }}
+            onClick={() => setShowLibrary(false)}
           >
             <motion.div
-              className="rounded-2xl shadow-2xl overflow-scroll my-16 max-w-6xl w-full h-full"
+              className="rounded-2xl shadow-2xl overflow-hidden max-w-5xl w-full h-[85vh]"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.1 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <LibraryGrid books={books} searchQuery={searchQuery} />
+              <LibraryGrid books={books} />
             </motion.div>
           </motion.div>
         )}
