@@ -2,7 +2,7 @@ import { useDataCache } from "@/hooks/use-data-cache";
 import { hc } from "hono/client";
 import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import type { AppType } from "../worker/index";
 import { BookColumn } from "./components/BookColumn";
 import { LibraryGrid } from "./components/LibraryGrid";
@@ -19,22 +19,18 @@ interface Book {
   createdAt: string;
 }
 
-function Canvas() {
-  const {
-    data: books,
-    loading,
-    error,
-  } = useDataCache<Book[]>("books", async () => {
-    const res = await client.api.books.$get();
-    if (!res.ok) {
-      throw new Error("Failed to fetch books");
-    }
-    const data = await res.json();
-    return data.books;
-  });
+interface BookColumnsContainerProps {
+  books: Book[];
+}
+
+// We need to memoise, or toggling the showLibrary will cause expensive re-renders here
+// The lag is noticeable when you have to re-render this entire container
+const BookColumnsContainer = memo(function BookColumnsContainer({
+  books,
+}: BookColumnsContainerProps) {
+  const columnContainersRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const [showLibrary, setShowLibrary] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  console.log("re-rendering book columns container");
 
   // Partition books into columns with 7-10 books each
   const columns = useMemo(() => {
@@ -65,7 +61,11 @@ function Canvas() {
     }));
   }, [columns.length]);
 
-  const columnContainersRef = useRef<HTMLDivElement>(null);
+  const bookWidth = isMobile ? 160 : 300;
+  const columnGap = isMobile ? 24 : 32;
+  const columnWidth = bookWidth + columnGap; // Book width + gap between columns
+  const columnsContainerWidth = columnWidth * columns.length + 60; // Add some spacing on the left and right
+
   useEffect(() => {
     if (columnContainersRef.current) {
       const scrollWidth = columnContainersRef.current.scrollWidth;
@@ -73,6 +73,48 @@ function Canvas() {
       columnContainersRef.current.scrollLeft = (scrollWidth - clientWidth) / 2;
     }
   }, [columns.length]);
+
+  return (
+    <div
+      className="w-full h-full overflow-x-auto overflow-y-hidden"
+      ref={columnContainersRef}
+    >
+      {/* Columns container */}
+      <div
+        className="h-full flex justify-center gap-6 lg:gap-8 px-8"
+        style={{
+          width: `${columnsContainerWidth}px`,
+        }}
+      >
+        {columns.map((columnBooks, columnIndex) => (
+          <BookColumn
+            bookWidth={bookWidth}
+            key={columnIndex}
+            books={columnBooks}
+            cycleSpeedInSeconds={columnConfigs[columnIndex].cycleSpeedInSeconds}
+            startDirection={columnConfigs[columnIndex].startDirection}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+function Canvas() {
+  const {
+    data: books,
+    loading,
+    error,
+  } = useDataCache<Book[]>("books", async () => {
+    const res = await client.api.books.$get();
+    if (!res.ok) {
+      throw new Error("Failed to fetch books");
+    }
+    const data = await res.json();
+    return data.books;
+  });
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (error) {
     return (
@@ -87,10 +129,7 @@ function Canvas() {
     return null;
   }
 
-  const bookWidth = isMobile ? 160 : 300;
-  const columnGap = isMobile ? 24 : 32;
-  const columnWidth = bookWidth + columnGap; // Book width + gap between columns
-  const columnsContainerWidth = columnWidth * columns.length + 60; // Add some spacing on the left and right
+  console.log("render");
 
   return (
     <>
@@ -114,30 +153,7 @@ function Canvas() {
         </div>
 
         {/* Horizontal scrolling container */}
-        <div
-          className="w-full h-full overflow-x-auto overflow-y-hidden"
-          ref={columnContainersRef}
-        >
-          {/* Columns container */}
-          <div
-            className="h-full flex justify-center gap-6 lg:gap-8 px-8"
-            style={{
-              width: `${columnsContainerWidth}px`,
-            }}
-          >
-            {columns.map((columnBooks, columnIndex) => (
-              <BookColumn
-                bookWidth={bookWidth}
-                key={columnIndex}
-                books={columnBooks}
-                cycleSpeedInSeconds={
-                  columnConfigs[columnIndex].cycleSpeedInSeconds
-                }
-                startDirection={columnConfigs[columnIndex].startDirection}
-              />
-            ))}
-          </div>
-        </div>
+        <BookColumnsContainer books={books || []} />
       </motion.div>
 
       {/* Library Overlay */}
@@ -155,7 +171,7 @@ function Canvas() {
             }}
           >
             <motion.div
-              className="rounded-2xl shadow-2xl overflow-scroll mt-16"
+              className="rounded-2xl shadow-2xl overflow-scroll my-16 max-w-6xl w-full h-full"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.1 }}

@@ -65,8 +65,8 @@ export function LibraryGrid({ books, searchQuery }: LibraryGridProps) {
   return (
     <>
       <BookDrawer />
-      <div className={"bg-background/80 backdrop-blur-md"}>
-        <div className="max-w-7xl mx-auto px-8">
+      <div className={"bg-background/80 backdrop-blur-md h-full w-full"}>
+        <div className="mx-auto px-8">
           {/* Grid Layout */}
           <div className={"pt-12 pb-24"}>
             {filteredBooks.length === 0 ? (
