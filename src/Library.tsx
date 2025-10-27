@@ -2,7 +2,7 @@ import { BookDrawer } from "@/components/BookDrawer";
 import { useDataCache } from "@/hooks/use-data-cache";
 import { generateBookSlug } from "@/lib/utils";
 import { hc } from "hono/client";
-import { Search } from "lucide-react";
+import { Search, Grid3x3 } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -99,8 +99,15 @@ function Library() {
                 placeholder="Search by title or author"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-full outline-none text-base focus:ring-1 focus:ring-ring focus:border-transparent transition-all shadow-sm focus:shadow-md"
+                className="w-full pl-12 pr-12 py-3 bg-background border border-border rounded-full outline-none text-base focus:ring-1 focus:ring-ring focus:border-transparent transition-all shadow-sm focus:shadow-md"
               />
+              <Link
+                to="/canvas"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                title="Canvas view"
+              >
+                <Grid3x3 className="h-5 w-5" />
+              </Link>
             </div>
           </div>
 
