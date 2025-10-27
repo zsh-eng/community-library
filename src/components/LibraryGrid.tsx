@@ -18,6 +18,9 @@ interface LibraryGridProps {
   books: Book[];
 }
 
+// Showing too many results in this modal search bar can cause lag in loading of the search bar
+const MAX_RESULTS_TO_SHOW = 40;
+
 export function LibraryGrid({ books }: LibraryGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
@@ -42,16 +45,18 @@ export function LibraryGrid({ books }: LibraryGridProps) {
     }
 
     if (searchQuery.trim() === "") {
-      setFilteredBooks(books);
+      setFilteredBooks(books.slice(0, MAX_RESULTS_TO_SHOW));
       return;
     }
 
     const query = searchQuery.toLowerCase();
-    const filtered = books.filter(
-      (book) =>
-        book.title.toLowerCase().includes(query) ||
-        book.author.toLowerCase().includes(query),
-    );
+    const filtered = books
+      .filter(
+        (book) =>
+          book.title.toLowerCase().includes(query) ||
+          book.author.toLowerCase().includes(query),
+      )
+      .slice(0, MAX_RESULTS_TO_SHOW);
     setFilteredBooks(filtered);
   }, [searchQuery, books]);
 
@@ -68,19 +73,19 @@ export function LibraryGrid({ books }: LibraryGridProps) {
       <BookDrawer />
       <div
         className={
-          "bg-background/80 backdrop-blur-md h-full w-full flex flex-col"
+          "bg-background/80 backdrop-blur-md h-full w-full flex flex-col gap-2"
         }
       >
         {/* Search Bar */}
-        <div className="flex-shrink-0 px-8 pt-8 pb-4">
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+        <div className="flex-shrink-0 px-2 pt-4 pb-4">
+          <div className="relative w-full mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for books..."
-              className="w-full pl-12 pr-4 py-3 bg-background/60 backdrop-blur-sm border border-border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm"
+              className="w-full pl-12 pr-4 py-3 bg-background/60 backdrop-blur-sm rounded-full text-lg focus:outline-none"
               autoFocus
             />
           </div>
@@ -88,13 +93,7 @@ export function LibraryGrid({ books }: LibraryGridProps) {
 
         {/* Scrollable Grid Container */}
         <div className="flex-1 overflow-y-auto px-8 pb-8">
-          {searchQuery === "" ? (
-            <div className="text-center py-16">
-              <p className="text-lg text-muted-foreground">
-                Start searching...
-              </p>
-            </div>
-          ) : filteredBooks.length === 0 ? (
+          {filteredBooks.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-lg text-muted-foreground">
                 No books found matching your search
@@ -103,8 +102,8 @@ export function LibraryGrid({ books }: LibraryGridProps) {
           ) : (
             <motion.div
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{
                 ease: "easeOut",
                 duration: 0.4,

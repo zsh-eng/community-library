@@ -167,7 +167,7 @@ function Canvas() {
             onClick={() => setShowLibrary(false)}
           >
             <motion.div
-              className="rounded-2xl shadow-2xl overflow-hidden max-w-5xl w-full h-[85vh]"
+              className="rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full h-[85vh]"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.1 }}
