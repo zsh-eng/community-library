@@ -32,21 +32,26 @@ const BookColumnsContainer = memo(function BookColumnsContainer({
   const isMobile = useIsMobile();
   console.log("re-rendering book columns container");
 
-  // Partition books into columns with 7-10 books each
+  // Partition into 20 columns of 7 books each
+  // 7 is enough for the user not to realise the number of books in a column
+  // 20 columns is wide enough
+  // We don't want to render too many for performance reasons
   const columns = useMemo(() => {
     if (!books || books.length === 0) return [];
 
-    const baseSize = 10;
-    const numColumns = Math.ceil(books.length / baseSize);
-    const basePerColumn = Math.floor(books.length / numColumns);
-    const numLarger = books.length % numColumns;
+    const baseSize = 7;
+    const slicedBooks = books.slice(0, baseSize * 20);
+
+    const numColumns = Math.ceil(slicedBooks.length / baseSize);
+    const basePerColumn = Math.floor(slicedBooks.length / numColumns);
+    const numLarger = slicedBooks.length % numColumns;
 
     const cols: Book[][] = [];
     let currentIndex = 0;
 
     for (let i = 0; i < numColumns; i++) {
       const columnSize = basePerColumn + (i < numLarger ? 1 : 0);
-      cols.push(books.slice(currentIndex, currentIndex + columnSize));
+      cols.push(slicedBooks.slice(currentIndex, currentIndex + columnSize));
       currentIndex += columnSize;
     }
 
