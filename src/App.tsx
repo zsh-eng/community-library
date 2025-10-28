@@ -1,8 +1,7 @@
+import Canvas from "@/Canvas";
 import BookWrapper from "@/components/BookWrapper";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DataCacheProvider } from "@/contexts/DataCacheContext";
-import Canvas from "@/Canvas";
-import Library from "@/Library";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 function App() {
@@ -12,7 +11,6 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Canvas />} />
-            <Route path="/library" element={<Library />} />
             <Route path="/book/:slug" element={<BookWrapper />} />
           </Routes>
         </BrowserRouter>
