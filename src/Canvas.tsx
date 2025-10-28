@@ -55,7 +55,7 @@ function Canvas() {
         <div className="absolute top-4 lg:top-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
           <button
             onClick={() => setShowLibrary(true)}
-            className="w-full flex items-center gap-3 px-6 py-3 bg-background/80 backdrop-blur-sm border border-border rounded-full shadow-lg hover:shadow-xl hover:scale-[101%] transition-all cursor-pointer group"
+            className="w-full flex items-center gap-3 px-4 py-3 bg-background/80 backdrop-blur-sm border border-border rounded-full shadow-lg hover:shadow-xl hover:scale-[101%] transition-all cursor-pointer group"
           >
             <Search className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
             <span className="text-base text-muted-foreground group-hover:text-foreground transition-colors">
