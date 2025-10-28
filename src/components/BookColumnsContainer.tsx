@@ -1,15 +1,6 @@
 import { BookColumn } from "@/components/BookColumn";
-import { useIsMobile } from "@/hooks/use-mobile";
+import type { Book } from "@/types";
 import { memo, useEffect, useMemo, useRef } from "react";
-
-interface Book {
-  id: number;
-  isbn: string;
-  title: string;
-  author: string;
-  imageUrl: string | null;
-  createdAt: string;
-}
 
 interface BookColumnsContainerProps {
   books: Book[];
@@ -21,7 +12,6 @@ export const BookColumnsContainer = memo(function BookColumnsContainer({
   books,
 }: BookColumnsContainerProps) {
   const columnContainersRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
   console.log("re-rendering book columns container");
 
   // Partition into 20 columns of 7 books each
@@ -58,10 +48,7 @@ export const BookColumnsContainer = memo(function BookColumnsContainer({
     }));
   }, [columns.length]);
 
-  const bookWidth = isMobile ? 160 : 300;
-  const columnGap = isMobile ? 24 : 32;
-  const columnWidth = bookWidth + columnGap; // Book width + gap between columns
-  const columnsContainerWidth = columnWidth * columns.length + 60; // Add some spacing on the left and right
+  const numColumns = columns.length;
 
   useEffect(() => {
     if (columnContainersRef.current) {
@@ -73,19 +60,31 @@ export const BookColumnsContainer = memo(function BookColumnsContainer({
 
   return (
     <div
-      className="w-full h-full overflow-x-auto overflow-y-hidden"
+      className="w-full h-full overflow-x-auto overflow-y-hidden book-columns-container"
       ref={columnContainersRef}
     >
+      <style>{`
+        .book-columns-container {
+          --book-width: 160px;
+          --column-gap: 24px;
+        }
+        @media (min-width: 1024px) {
+          .book-columns-container {
+            --book-width: 300px;
+            --column-gap: 32px;
+          }
+        }
+      `}</style>
+
       {/* Columns container */}
       <div
         className="h-full flex justify-center gap-6 lg:gap-8 px-8"
         style={{
-          width: `${columnsContainerWidth}px`,
+          width: `calc((var(--book-width) + var(--column-gap)) * ${numColumns} + 64px)`,
         }}
       >
         {columns.map((columnBooks, columnIndex) => (
           <BookColumn
-            bookWidth={bookWidth}
             key={columnIndex}
             books={columnBooks}
             cycleSpeedInSeconds={columnConfigs[columnIndex].cycleSpeedInSeconds}

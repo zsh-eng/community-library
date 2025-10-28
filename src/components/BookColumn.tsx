@@ -15,23 +15,18 @@ interface BookColumnProps {
   books: Book[];
   cycleSpeedInSeconds: number; // duration multiplier (higher = slower), best to have 30-60 seconds per cycle
   startDirection: "up" | "down";
-  bookWidth?: number;
 }
 
 export function BookColumn({
   books,
   cycleSpeedInSeconds,
   startDirection,
-  bookWidth = 300,
 }: BookColumnProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      className="h-full overflow-visible relative"
-      style={{
-        width: `${bookWidth}px`,
-      }}
+      className="h-full overflow-visible relative w-[var(--book-width)]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -59,10 +54,7 @@ export function BookColumn({
           <Link
             key={`${book.id}-${index}`}
             to={`/book/${generateBookSlug(book.title, book.id)}`}
-            className="group cursor-pointer block"
-            style={{
-              width: `${bookWidth}px`,
-            }}
+            className="group cursor-pointer block w-[var(--book-width)]"
           >
             <div className="space-y-3">
               {/* Book Cover */}
@@ -79,20 +71,10 @@ export function BookColumn({
                       loading="lazy"
                       src={book.imageUrl}
                       alt={book.title}
-                      className="w-full rounded-sm transition-all duration-150"
-                      style={{
-                        width: `${bookWidth}px`,
-                        height: "auto",
-                      }}
+                      className="w-full rounded-sm transition-all duration-150 h-auto"
                     />
                   ) : (
-                    <div
-                      className="w-full flex items-center justify-center bg-muted"
-                      style={{
-                        width: `${bookWidth}px`,
-                        height: "400px",
-                      }}
-                    >
+                    <div className="w-full flex items-center justify-center bg-muted h-[400px]">
                       <p className="text-xs text-muted-foreground text-center px-2">
                         No cover
                       </p>
