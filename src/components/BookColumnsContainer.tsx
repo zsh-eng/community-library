@@ -12,12 +12,12 @@ export const BookColumnsContainer = memo(function BookColumnsContainer({
   books,
 }: BookColumnsContainerProps) {
   const columnContainersRef = useRef<HTMLDivElement>(null);
-  console.log("re-rendering book columns container");
 
   // Partition into 20 columns of 7 books each
   // 7 is enough for the user not to realise the number of books in a column
   // 20 columns is wide enough
   // We don't want to render too many for performance reasons
+  // TODO: randomise partition
   const columns = useMemo(() => {
     if (!books || books.length === 0) return [];
 

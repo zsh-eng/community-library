@@ -41,8 +41,6 @@ function Canvas() {
     return null;
   }
 
-  console.log("render");
-
   return (
     <>
       <motion.div
