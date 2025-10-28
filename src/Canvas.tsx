@@ -78,13 +78,13 @@ function Canvas() {
             onClick={() => setShowLibrary(false)}
           >
             <motion.div
-              className="rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full h-full lg:h-[85vh]"
-              initial={{ scale: 0.9 }}
+              className="md:rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full h-full lg:h-[85vh]"
+              initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.1 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <LibraryGrid books={books} />
+              <LibraryGrid books={books} setShowLibrary={setShowLibrary} />
             </motion.div>
           </motion.div>
         )}

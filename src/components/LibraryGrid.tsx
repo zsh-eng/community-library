@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { Button } from "./ui/button";
 
 interface Book {
   id: number;
@@ -17,12 +18,13 @@ interface Book {
 
 interface LibraryGridProps {
   books: Book[];
+  setShowLibrary: (show: boolean) => void;
 }
 
 // Showing too many results in this modal search bar can cause lag in loading of the search bar
 const MAX_RESULTS_TO_SHOW = 40;
 
-export function LibraryGrid({ books }: LibraryGridProps) {
+export function LibraryGrid({ books, setShowLibrary }: LibraryGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [, setSearchParams] = useSearchParams();
@@ -67,7 +69,7 @@ export function LibraryGrid({ books }: LibraryGridProps) {
         }
       >
         {/* Search Bar */}
-        <div className="flex-shrink-0 px-2 lg:px-4 pt-4">
+        <div className="flex-shrink-0 px-4 pt-4">
           <div className="relative w-full mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground pointer-events-none" />
             <input
@@ -78,6 +80,14 @@ export function LibraryGrid({ books }: LibraryGridProps) {
               className="w-full pl-12 pr-4 py-3 bg-transparent rounded-full text-lg focus:outline-none"
               autoFocus
             />
+            <Button
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg cursor-pointer text-base md:hidden"
+              variant={"secondary"}
+              size={"lg"}
+              onClick={() => setShowLibrary(false)}
+            >
+              Cancel
+            </Button>
           </div>
         </div>
 
