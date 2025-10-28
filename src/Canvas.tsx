@@ -5,25 +5,28 @@ import type { Book } from "@/types";
 import { hc } from "hono/client";
 import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { AppType } from "../worker/index";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
 function Canvas() {
-  const {
-    data: books,
-    loading,
-    error,
-  } = useDataCache<Book[]>("books", async () => {
+  const [showLibrary, setShowLibrary] = useState(false);
+
+  const fetchBooks = useCallback(async () => {
     const res = await client.api.books.$get();
     if (!res.ok) {
       throw new Error("Failed to fetch books");
     }
     const data = await res.json();
     return data.books;
-  });
-  const [showLibrary, setShowLibrary] = useState(false);
+  }, []);
+
+  const {
+    data: books,
+    loading,
+    error,
+  } = useDataCache<Book[]>("books", fetchBooks);
 
   if (error) {
     return (
@@ -62,7 +65,7 @@ function Canvas() {
         </div>
 
         {/* Horizontal scrolling container */}
-        <BookColumnsContainer books={books || []} />
+        {books && <BookColumnsContainer books={books} />}
       </motion.div>
 
       {/* Library Overlay */}

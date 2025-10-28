@@ -33,33 +33,19 @@ export function useDataCache<T>(
   const { cache, setCache, invalidate } = context;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [shouldFetch, setShouldFetch] = useState(false);
 
   const enabled = options.enabled !== false;
   const data = key ? (cache[key] as T | undefined) : undefined;
+  const isCached = key ? key in cache : false;
 
   useEffect(() => {
-    if (!key || !enabled) return;
+    if (!key || !enabled || isCached) return;
 
-    // If data is already cached, don't fetch
-    if (cache[key]) {
-      setLoading(false);
-      return;
-    }
-
-    // Mark that we should fetch
-    if (!shouldFetch) {
-      setShouldFetch(true);
-    }
-  }, [key, enabled, cache, shouldFetch]);
-
-  useEffect(() => {
-    if (!key || !enabled || !shouldFetch) return;
+    let cancelled = false;
 
     const fetchData = async () => {
       // Double-check cache in case another component fetched it
       if (cache[key]) {
-        setShouldFetch(false);
         return;
       }
 
@@ -67,22 +53,32 @@ export function useDataCache<T>(
       setError(null);
       try {
         const result = await fetcher();
-        setCache((prev) => ({ ...prev, [key]: result }));
+        if (!cancelled) {
+          setCache((prev) => ({ ...prev, [key]: result }));
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data");
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to fetch data");
+        }
       } finally {
-        setLoading(false);
-        setShouldFetch(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, [key, enabled, shouldFetch, cache, fetcher, setCache]);
+
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally omit fetcher and setCache from dependencies to prevent re-fetching
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, enabled, isCached]);
 
   const refetch = () => {
     if (key) {
       invalidate(key);
-      setShouldFetch(true);
     }
   };
 
