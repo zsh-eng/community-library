@@ -33,9 +33,13 @@ function BookItem({ book }: { book: Book }) {
                 src={book.imageUrl}
                 alt={book.title}
                 className="w-full rounded-sm transition-all duration-150 h-auto"
+                style={{ aspectRatio: "2/3" }}
               />
             ) : (
-              <div className="w-full flex items-center justify-center bg-muted h-[400px]">
+              <div
+                className="w-full flex items-center justify-center bg-muted rounded-sm"
+                style={{ aspectRatio: "2/3" }}
+              >
                 <p className="text-xs text-muted-foreground text-center px-2">
                   No cover
                 </p>
@@ -63,7 +67,6 @@ export function BookColumn({
   startDirection,
 }: BookColumnProps) {
   const [isHovered, setIsHovered] = useState(false);
-
   return (
     <div
       className="h-full overflow-visible relative w-[var(--book-width)]"
