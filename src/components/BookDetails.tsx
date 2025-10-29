@@ -1,10 +1,8 @@
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { generateTelegramBookUrl } from "@/lib/bot";
 import { cn } from "@/lib/utils";
 import { Send } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
 
 interface Loan {
   id: number;
@@ -47,24 +45,10 @@ interface BookDetailsProps {
 }
 
 function BookImage({ src, alt }: { src: string; alt: string }) {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  if (imageError) {
-    return (
-      <div className="w-80 h-[480px] flex items-center justify-center">
-        <Skeleton className="w-full h-full rounded-lg" />
-      </div>
-    );
-  }
-
   return (
     <div className="w-60 md:w-80 perspective-1000">
-      {!imageLoaded && (
-        <Skeleton className="w-60 md:w-80 h-[480px] rounded-lg" />
-      )}
       <motion.div
-        className={cn("relative cursor-pointer", !imageLoaded && "hidden")}
+        className={cn("relative cursor-pointer")}
         whileTap={{ scale: 0.98 }}
         whileHover={{ scale: 1.01 }}
         transition={{
@@ -76,11 +60,10 @@ function BookImage({ src, alt }: { src: string; alt: string }) {
         <img
           src={src}
           alt={alt}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setImageError(true)}
           className="w-full h-auto object-cover rounded-lg shadow-2xl"
           style={{
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4)",
+            viewTransitionName: "book-cover-expand",
           }}
         />
       </motion.div>

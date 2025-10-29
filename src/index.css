@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+::view-transition-old(book-cover-expand),
+::view-transition-new(book-cover-expand) {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-out;
+}
+
 @theme inline {
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
