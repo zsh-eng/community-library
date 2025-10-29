@@ -4,7 +4,7 @@ import { generateBookSlug } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useSearchParams, useViewTransitionState } from "react-router";
 import { Button } from "./ui/button";
 
 interface Book {
@@ -23,6 +23,66 @@ interface LibraryGridProps {
 
 // Showing too many results in this modal search bar can cause lag in loading of the search bar
 const MAX_RESULTS_TO_SHOW = 40;
+
+function LibraryGridItem({
+  book,
+  handleBookClick,
+}: {
+  book: Book;
+  handleBookClick: (
+    id: number,
+    event: React.MouseEvent<HTMLAnchorElement>,
+  ) => void;
+}) {
+  const href = `/book/${generateBookSlug(book.title, book.id)}`;
+  const isTransitioning = useViewTransitionState(href);
+
+  return (
+    <div key={book.id} className="relative isolate">
+      <Link
+        to={href}
+        className="group cursor-pointer block"
+        onClick={(e) => handleBookClick(book.id, e)}
+        viewTransition
+      >
+        <div className="space-y-3">
+          {/* Book Cover */}
+          <div className="aspect-[2/3] relative bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:z-10">
+            {book.imageUrl ? (
+              <img
+                loading="lazy"
+                src={book.imageUrl}
+                alt={book.title}
+                className="w-full h-full object-cover group-hover:scale-[102%] rounded-sm transition-all duration-150"
+                style={{
+                  viewTransitionName: isTransitioning
+                    ? "book-cover-expand"
+                    : undefined,
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted">
+                <p className="text-xs text-muted-foreground text-center px-2">
+                  No cover
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Book Info */}
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors font-serif">
+              {book.title}
+            </h3>
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              {book.author}
+            </p>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+}
 
 export function LibraryGrid({ books, setShowLibrary }: LibraryGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,43 +170,11 @@ export function LibraryGrid({ books, setShowLibrary }: LibraryGridProps) {
               }}
             >
               {filteredBooks.map((book) => (
-                <div key={book.id} className="relative isolate">
-                  <Link
-                    to={`/book/${generateBookSlug(book.title, book.id)}`}
-                    className="group cursor-pointer block"
-                    onClick={(e) => handleBookClick(book.id, e)}
-                  >
-                    <div className="space-y-3">
-                      {/* Book Cover */}
-                      <div className="aspect-[2/3] relative bg-muted shadow-lg rounded-sm transition-all duration-150 group-hover:shadow-xl group-hover:z-10">
-                        {book.imageUrl ? (
-                          <img
-                            loading="lazy"
-                            src={book.imageUrl}
-                            alt={book.title}
-                            className="w-full h-full object-cover group-hover:scale-[102%] rounded-sm transition-all duration-150"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-muted">
-                            <p className="text-xs text-muted-foreground text-center px-2">
-                              No cover
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Book Info */}
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors font-serif">
-                          {book.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {book.author}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
+                <LibraryGridItem
+                  key={book.id}
+                  book={book}
+                  handleBookClick={handleBookClick}
+                />
               ))}
             </motion.div>
           )}

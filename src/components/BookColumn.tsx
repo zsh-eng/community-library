@@ -19,12 +19,9 @@ interface BookColumnProps {
 
 function BookItem({ book }: { book: Book }) {
   const href = `/book/${generateBookSlug(book.title, book.id)}`;
-  const isTransitioning = useViewTransitionState(href);
-
   return (
     <Link
       to={href}
-      viewTransition
       className="group cursor-pointer block w-[var(--book-width)]"
     >
       <div className="space-y-3">
@@ -36,11 +33,6 @@ function BookItem({ book }: { book: Book }) {
                 src={book.imageUrl}
                 alt={book.title}
                 className="w-full rounded-sm transition-all duration-150 h-auto"
-                style={{
-                  viewTransitionName: isTransitioning
-                    ? `book-cover-expand`
-                    : undefined,
-                }}
               />
             ) : (
               <div className="w-full flex items-center justify-center bg-muted h-[400px]">

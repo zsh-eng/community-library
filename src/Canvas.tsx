@@ -47,7 +47,7 @@ function Canvas() {
         className="fixed inset-0 bg-background"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
+        transition={{ duration: 0.5 }}
       >
         {/* Search Bar */}
         <div className="absolute top-4 lg:top-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
@@ -57,7 +57,7 @@ function Canvas() {
           >
             <Search className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
             <span className="text-base text-muted-foreground group-hover:text-foreground transition-colors">
-              Search library
+              Search for books...
             </span>
           </button>
         </div>

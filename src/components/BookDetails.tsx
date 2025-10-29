@@ -184,10 +184,9 @@ export function BookDetails({ book }: BookDetailsProps) {
           {book.imageUrl && (
             <motion.div
               className="flex-1 flex justify-end sticky top-12 xl:pr-24 mt-12"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{
-                y: { duration: 0.7 },
                 opacity: { duration: 0.3 },
               }}
             >
