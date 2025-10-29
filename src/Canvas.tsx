@@ -7,6 +7,21 @@ import { useState } from "react";
 import { useLoaderData } from "react-router";
 import { useIsMobile } from "./hooks/use-mobile";
 
+function Logo() {
+  return (
+    <div className="absolute hidden sm:block sm:bottom-4 sm:right-4 lg:right-5 lg:bottom-4 z-20 bg-muted/90 dark:bg-muted/70 rounded-sm pt-1 pb-0.5 px-3 cursor-pointer">
+      <p className="uppercase font-logo group transition-colors text-2xl">
+        <span className="text-blue-900/80 group-hover:text-blue-700 dark:text-blue-300/80 dark:group-hover:text-blue-300 transition-colors">
+          NUSC
+        </span>
+        <span className="text-foreground/80 group-hover:text-foreground transition-colors">
+          ommonShelves
+        </span>
+      </p>
+    </div>
+  );
+}
+
 function Canvas() {
   const [showLibrary, setShowLibrary] = useState(false);
   const isMobile = useIsMobile();
@@ -14,6 +29,7 @@ function Canvas() {
 
   return (
     <>
+      <Logo />
       <motion.div
         className="fixed inset-0 bg-background"
         initial={{ opacity: 0 }}
