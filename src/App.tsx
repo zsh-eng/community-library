@@ -12,6 +12,14 @@ const client = hc<AppType>(import.meta.env.BASE_URL);
 const router = createBrowserRouter([
   {
     path: "/",
+    loader: async () => {
+      const res = await client.api.books.$get();
+      if (!res.ok) {
+        throw new Error("Failed to fetch books");
+      }
+      const data = await res.json();
+      return { books: data.books };
+    },
     Component: Canvas,
   },
   {

@@ -1,45 +1,14 @@
 import { BookColumnsContainer } from "@/components/BookColumnsContainer";
 import { LibraryGrid } from "@/components/LibraryGrid";
-import { useDataCache } from "@/hooks/use-data-cache";
 import type { Book } from "@/types";
-import { hc } from "hono/client";
 import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useState } from "react";
-import type { AppType } from "../worker/index";
-
-const client = hc<AppType>(import.meta.env.BASE_URL);
+import { useState } from "react";
+import { useLoaderData } from "react-router";
 
 function Canvas() {
   const [showLibrary, setShowLibrary] = useState(false);
-
-  const fetchBooks = useCallback(async () => {
-    const res = await client.api.books.$get();
-    if (!res.ok) {
-      throw new Error("Failed to fetch books");
-    }
-    const data = await res.json();
-    return data.books;
-  }, []);
-
-  const {
-    data: books,
-    loading,
-    error,
-  } = useDataCache<Book[]>("books", fetchBooks);
-
-  if (error) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <p className="text-lg text-red-600">{error}</p>
-      </div>
-    );
-  }
-
-  if (loading) {
-    // TODO: add a loading state?
-    return null;
-  }
+  const { books } = useLoaderData<{ books: Book[] }>();
 
   return (
     <>
@@ -63,7 +32,7 @@ function Canvas() {
         </div>
 
         {/* Horizontal scrolling container */}
-        {books && <BookColumnsContainer books={books} />}
+        {<BookColumnsContainer books={books} />}
       </motion.div>
 
       {/* Library Overlay */}
