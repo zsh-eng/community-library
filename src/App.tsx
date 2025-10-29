@@ -9,16 +9,30 @@ import type { AppType } from "../worker/index";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
+// In-memory cache for Canvas data loader
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const canvasCache = new Map<string, any>();
+const CANVAS_CACHE_KEY = "canvas-books";
+
 const router = createBrowserRouter([
   {
     path: "/",
     loader: async () => {
+      // Check cache first
+      const cachedData = canvasCache.get(CANVAS_CACHE_KEY);
+      if (cachedData) {
+        return cachedData;
+      }
+
       const res = await client.api.books.$get();
       if (!res.ok) {
         throw new Error("Failed to fetch books");
       }
       const data = await res.json();
-      return { books: data.books };
+      const result = { books: data.books };
+
+      canvasCache.set(CANVAS_CACHE_KEY, result);
+      return result;
     },
     Component: Canvas,
   },
