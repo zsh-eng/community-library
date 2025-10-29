@@ -38,7 +38,7 @@ function BookItem({ book }: { book: Book }) {
                 className="w-full rounded-sm transition-all duration-150 h-auto"
                 style={{
                   viewTransitionName: isTransitioning
-                    ? "book-cover-expand" // ✅ Same name for all books
+                    ? `book-cover-expand`
                     : undefined,
                 }}
               />
@@ -96,8 +96,6 @@ export function BookColumn({
           animationPlayState: isHovered ? "paused" : "running",
         }}
       >
-        {/* TODO: still need this?*/}
-        {/* Render books twice for seamless loop */}
         {[...books].map((book, index) => (
           <BookItem key={`book-item-${book.id}-${index}`} book={book} />
         ))}

@@ -1,8 +1,9 @@
 import { useDataCache } from "@/hooks/use-data-cache";
+import type { BookDetail } from "@/types";
 import { hc } from "hono/client";
 import { useSearchParams } from "react-router";
 import type { AppType } from "../../worker/index";
-import { BookDetails, type BookDetail } from "./BookDetails";
+import { BookDetails } from "./BookDetails";
 import { Drawer, DrawerContent } from "./ui/drawer";
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
