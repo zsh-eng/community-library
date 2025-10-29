@@ -2,18 +2,24 @@ import Canvas from "@/Canvas";
 import BookWrapper from "@/components/BookWrapper";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DataCacheProvider } from "@/contexts/DataCacheContext";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    Component: Canvas,
+  },
+  {
+    path: "/book/:slug",
+    Component: BookWrapper,
+  },
+]);
 
 function App() {
   return (
     <ThemeProvider defaultTheme="system">
       <DataCacheProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Canvas />} />
-            <Route path="/book/:slug" element={<BookWrapper />} />
-          </Routes>
-        </BrowserRouter>
+        <RouterProvider router={router} />
       </DataCacheProvider>
     </ThemeProvider>
   );
