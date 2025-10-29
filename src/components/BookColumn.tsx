@@ -1,6 +1,6 @@
 import { generateBookSlug } from "@/lib/utils";
 import { useState } from "react";
-import { Link, useViewTransitionState } from "react-router";
+import { Link } from "react-router";
 
 interface Book {
   id: number;
@@ -88,7 +88,8 @@ export function BookColumn({
           animationPlayState: isHovered ? "paused" : "running",
         }}
       >
-        {[...books].map((book, index) => (
+        {/* Hide the number of books by doubling it */}
+        {[...books, ...books].map((book, index) => (
           <BookItem key={`book-item-${book.id}-${index}`} book={book} />
         ))}
       </div>
