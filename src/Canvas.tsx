@@ -5,9 +5,11 @@ import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useLoaderData } from "react-router";
+import { useIsMobile } from "./hooks/use-mobile";
 
 function Canvas() {
   const [showLibrary, setShowLibrary] = useState(false);
+  const isMobile = useIsMobile();
   const { books } = useLoaderData<{ books: Book[] }>();
 
   return (
@@ -48,7 +50,8 @@ function Canvas() {
           >
             <motion.div
               className="md:rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full h-full lg:h-[85vh]"
-              initial={{ scale: 0.95 }}
+              // No scaling on mobile - it looks sluggish due to performance issues
+              initial={{ scale: isMobile ? 1 : 0.95 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.1 }}
               onClick={(e) => e.stopPropagation()}
