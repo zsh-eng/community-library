@@ -112,6 +112,17 @@ export function LibraryGrid({ books, setShowLibrary }: LibraryGridProps) {
     setFilteredBooks(filtered);
   }, [searchQuery, books]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowLibrary(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [setShowLibrary]);
+
   const handleBookClick = (bookId: number, e: React.MouseEvent) => {
     if (isMobile) {
       e.preventDefault();
