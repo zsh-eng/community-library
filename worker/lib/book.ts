@@ -294,5 +294,6 @@ export async function getUserActiveLoans(db: Database, telegramUserId: number) {
     copyNumber: loan.bookCopy.copyNumber,
     borrowedAt: loan.borrowedAt,
     dueDate: loan.dueDate,
+    imageUrl: loan.bookCopy.book.imageUrl,
   }));
 }

@@ -222,9 +222,17 @@ function MiniApp() {
                   key={loan.qrCodeId}
                   className="flex items-center gap-3 rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3"
                 >
-                  <div className="flex h-16 w-11 items-center justify-center rounded-md bg-[var(--tg-theme-bg-color,#fff)]">
-                    <span className="text-xl">📚</span>
-                  </div>
+                  {loan?.imageUrl ? (
+                    <img
+                      src={loan.imageUrl}
+                      alt={loan.title}
+                      className="h-16 w-11 rounded-md bg-[var(--tg-theme-bg-color,#fff)]"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-11 items-center justify-center rounded-md bg-[var(--tg-theme-bg-color,#fff)]">
+                      <span className="text-xl">📚</span>
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-[var(--tg-theme-text-color,#000)]">
                       {loan.title}

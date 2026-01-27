@@ -9,6 +9,7 @@ export type ActiveLoan = {
   copyNumber: number;
   borrowedAt: string;
   dueDate: string;
+  imageUrl?: string | null;
 };
 
 /**
