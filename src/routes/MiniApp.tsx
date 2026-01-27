@@ -235,7 +235,6 @@ function MiniApp() {
         isBorrowed={isBorrowedByUser(view.copy.qrCodeId)}
         onScanLocation={() => handleLocationScan(view.book, view.copy)}
         onScanReturn={() => handleReturnScan(view.book, view.copy)}
-        onBack={() => setView({ name: "home" })}
       />
     );
   }
