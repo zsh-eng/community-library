@@ -1,6 +1,7 @@
 import { BookDetailView } from "@/components/mini-app/BookDetail";
 import { BookNotFound } from "@/components/mini-app/BookNotFound";
 import { BorrowConfirmation } from "@/components/mini-app/BorrowConfirmation";
+import { ReturnConfirmation } from "@/components/mini-app/ReturnConfirmation";
 import { UserProfile } from "@/components/mini-app/UserProfile";
 import { useBookCopyLookup } from "@/hooks/use-book-query";
 import { type BorrowResult, useBorrowBook } from "@/hooks/use-borrow-book";
@@ -221,38 +222,10 @@ function MiniApp() {
 
   if (view.name === "return-confirmation") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--tg-theme-bg-color,#fff)] p-6">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#22c55e"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-[var(--tg-theme-text-color,#000)]">
-            Book Returned!
-          </h2>
-          <p className="text-[var(--tg-theme-hint-color,#999)]">
-            Thank you for returning <strong>{view.result.book?.title}</strong>.
-          </p>
-          <button
-            onClick={() => setView({ name: "home" })}
-            className="mt-4 w-full rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)]"
-            style={{ backgroundColor: "var(--tg-theme-button-color, #5288c1)" }}
-          >
-            Done
-          </button>
-        </div>
-      </div>
+      <ReturnConfirmation
+        result={view.result}
+        onDone={() => setView({ name: "home" })}
+      />
     );
   }
 

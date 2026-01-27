@@ -123,3 +123,13 @@
     height: 48px;
     color: rgba(255, 255, 255, 0.8);
 }
+
+/* Static checkmark container for return confirmation (no phase transition) */
+.checkmark-container-static {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: container-pop 0.4s ease-out forwards;
+}
