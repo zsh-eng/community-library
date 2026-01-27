@@ -12,6 +12,7 @@ export type BorrowResult = {
   book?: {
     title: string;
     author: string;
+    imageUrl?: string | null;
   };
   copyNumber?: number;
   error?: string;

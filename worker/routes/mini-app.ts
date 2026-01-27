@@ -57,6 +57,7 @@ export const miniApp = new Hono<{ Bindings: Env }>()
         book: {
           title: result.book.title,
           author: result.book.author,
+          imageUrl: result.book.imageUrl,
         },
         copyNumber: result.copyNumber,
       });
