@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { botApp } from "./bot.ts";
 import * as schema from "./db/schema.ts";
+import { miniApp } from "./routes/mini-app.ts";
 
 const app = new Hono<{
   Bindings: Env;
@@ -82,7 +83,8 @@ const route = app
 
     return c.json({ book, copy });
   })
-  .route("/bot", botApp);
+  .route("/bot", botApp)
+  .route("/miniapp", miniApp);
 
 export default app;
 // For type inference in the client
