@@ -14,13 +14,6 @@ export function BorrowConfirmation({
   copy: BookCopy;
   onDone: () => void;
 }) {
-  // ===== TEMPORARY: Animation key to retrigger animation on tap =====
-  const [animationKey, setAnimationKey] = useState(0);
-  const handleRetrigger = useCallback(() => {
-    setAnimationKey((k) => k + 1);
-  }, []);
-  // ===== END TEMPORARY =====
-
   const [phase, setPhase] = useState<1 | 2>(1);
 
   const dueDateStr = result.loan
@@ -40,11 +33,6 @@ export function BorrowConfirmation({
     });
   }, []);
 
-  // Reset phase when animation key changes (for retrigger)
-  useEffect(() => {
-    setPhase(1);
-  }, [animationKey]);
-
   // Transition to phase 2 after checkmark animation completes + slight pause
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -53,17 +41,10 @@ export function BorrowConfirmation({
     }, 1000); // 650ms for animation + 350ms pause
 
     return () => clearTimeout(timer);
-  }, [animationKey, fireConfetti]);
-
-  // Get book cover from copy's book data if available
-  // Note: copy doesn't include imageUrl in types, we may need to get it from result or pass it from parent
-  // For now, we'll use a fallback since BorrowResult.book doesn't have imageUrl
+  }, [fireConfetti]);
 
   return (
-    // ===== TEMPORARY: onClick to retrigger animation =====
     <div
-      key={animationKey}
-      onClick={handleRetrigger}
       className={`flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--tg-theme-bg-color,#fff)] p-6 ${phase === 2 ? "phase2" : ""}`}
     >
       {/* Hero container - fixed size to prevent layout shift */}
