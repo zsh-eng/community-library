@@ -1,5 +1,6 @@
 import { initTelegramSdk } from "@/lib/telegram";
 import { useEffect, useState } from "react";
+import "../mini-app.css";
 
 function MiniApp() {
   const [ready, setReady] = useState(false);
