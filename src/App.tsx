@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import Book from "@/Book";
 import Canvas from "@/Canvas";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -6,6 +7,8 @@ import { extractIdFromSlug } from "@/lib/utils";
 import { hc } from "hono/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import type { AppType } from "../worker/index";
+
+const MiniApp = lazy(() => import("@/routes/MiniApp"));
 
 const client = hc<AppType>(import.meta.env.BASE_URL);
 
@@ -61,6 +64,10 @@ const router = createBrowserRouter([
       return { book: data.book };
     },
     Component: Book,
+  },
+  {
+    path: "/mini-app",
+    Component: MiniApp,
   },
 ]);
 

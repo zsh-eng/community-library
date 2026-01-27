@@ -2,20 +2,20 @@
   "files": [],
   "references": [
     {
-      "path": "./tsconfig.app.json"
+      "path": "./tsconfig.app.json",
     },
     {
-      "path": "./tsconfig.node.json"
+      "path": "./tsconfig.node.json",
     },
     {
-      "path": "./tsconfig.worker.json"
-    }
+      "path": "./tsconfig.worker.json",
+    },
   ],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
     },
-    "types": ["./worker-configuration.d.ts"]
-  }
+    "types": ["./worker-configuration.d.ts"],
+  },
 }
