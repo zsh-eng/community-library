@@ -1,7 +1,7 @@
-import type { BookCopy, BookDetail } from "@/types";
+import type { Book, BookCopy } from "@/types";
 
 type BookDetailProps = {
-  book: BookDetail;
+  book: Book;
   copy: BookCopy;
   isBorrowed: boolean;
   onScanLocation: () => void;
@@ -17,7 +17,8 @@ export function BookDetailView({
 }: BookDetailProps) {
   // Check if the copy is available: no active loans and status is available
   const hasActiveLoan = copy.loans.length > 0;
-  const unavailable = copy.status !== "available" || hasActiveLoan || isBorrowed;
+  const unavailable =
+    copy.status !== "available" || hasActiveLoan || isBorrowed;
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--tg-theme-bg-color,#fff)]">

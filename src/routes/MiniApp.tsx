@@ -2,12 +2,12 @@ import { BookDetailView } from "@/components/mini-app/BookDetail";
 import { BookNotFound } from "@/components/mini-app/BookNotFound";
 import { BorrowConfirmation } from "@/components/mini-app/BorrowConfirmation";
 import { UserProfile } from "@/components/mini-app/UserProfile";
-import type { BorrowRecord } from "@/data/borrow-store";
 import { useBookCopyLookup } from "@/hooks/use-book-query";
-import { useBorrowStore } from "@/hooks/use-borrow-store";
+import { type BorrowResult, useBorrowBook } from "@/hooks/use-borrow-book";
 import { useTelegramUser } from "@/hooks/use-telegram-user";
+import { useUserLoans } from "@/hooks/use-user-loans";
 import { initTelegramSdk } from "@/lib/telegram";
-import type { Book, BookCopy, BookDetail, Location } from "@/types";
+import type { Book, BookCopy, Location } from "@/types";
 import { popup, qrScanner } from "@telegram-apps/sdk-react";
 import { useEffect, useState } from "react";
 import "../mini-app.css";
@@ -16,7 +16,8 @@ type View =
   | { name: "home" }
   | { name: "scanning"; qrCodeId: string }
   | { name: "book-detail"; book: Book; copy: BookCopy }
-  | { name: "borrow-confirmation"; record: BorrowRecord }
+  | { name: "borrowing"; book: Book; copy: BookCopy }
+  | { name: "borrow-confirmation"; result: BorrowResult; copy: BookCopy }
   | { name: "book-not-found"; scannedText: string };
 
 function MiniApp() {
@@ -27,8 +28,8 @@ function MiniApp() {
   }, []);
 
   const user = useTelegramUser();
-  const userId = user?.id ?? 0;
-  const store = useBorrowStore(userId);
+  const { data: loans = [], isLoading: loansLoading } = useUserLoans();
+  const borrowMutation = useBorrowBook();
   const [view, setView] = useState<View>({ name: "home" });
 
   // Fetch book copy when scanning
@@ -76,7 +77,7 @@ function MiniApp() {
     }
   }
 
-  async function handleLocationScan(book: BookDetail, copy: BookCopy) {
+  async function handleLocationScan(book: Book, copy: BookCopy) {
     try {
       const scanned = await qrScanner.open({
         text: `Scan the ${copy.location.name} location QR code`,
@@ -98,22 +99,38 @@ function MiniApp() {
       }
 
       // Location verified, proceed with borrowing
-      const record = store.borrow(book, copy);
-      setView({ name: "borrow-confirmation", record });
+      setView({ name: "borrowing", book, copy });
+      try {
+        const result = await borrowMutation.mutateAsync(copy.qrCodeId);
+        setView({ name: "borrow-confirmation", result, copy });
+      } catch (error) {
+        popup.show({
+          title: "Borrow Failed",
+          message:
+            error instanceof Error ? error.message : "Failed to borrow book",
+          buttons: [{ type: "ok" }],
+        });
+        setView({ name: "book-detail", book, copy });
+      }
     } catch {
       // Scanner closed by user, ignore
     }
   }
 
-  // Show loading state while scanning
-  if (view.name === "scanning") {
+  // Check if a book copy is already borrowed by the user
+  function isBorrowedByUser(qrCodeId: string): boolean {
+    return loans.some((loan) => loan.qrCodeId === qrCodeId);
+  }
+
+  // Show loading state while scanning or borrowing
+  if (view.name === "scanning" || view.name === "borrowing") {
+    const message =
+      view.name === "scanning" ? "Looking up book..." : "Borrowing book...";
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--tg-theme-bg-color,#fff)]">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--tg-theme-button-color,#5288c1)] border-t-transparent" />
-          <p className="text-[var(--tg-theme-hint-color,#999)]">
-            Looking up book...
-          </p>
+          <p className="text-[var(--tg-theme-hint-color,#999)]">{message}</p>
         </div>
       </div>
     );
@@ -124,7 +141,7 @@ function MiniApp() {
       <BookDetailView
         book={view.book}
         copy={view.copy}
-        isBorrowed={store.isBorrowed(view.copy.qrCodeId)}
+        isBorrowed={isBorrowedByUser(view.copy.qrCodeId)}
         onScanLocation={() => handleLocationScan(view.book, view.copy)}
         onBack={() => setView({ name: "home" })}
       />
@@ -134,7 +151,8 @@ function MiniApp() {
   if (view.name === "borrow-confirmation") {
     return (
       <BorrowConfirmation
-        record={view.record}
+        result={view.result}
+        copy={view.copy}
         onDone={() => setView({ name: "home" })}
       />
     );
@@ -149,9 +167,6 @@ function MiniApp() {
       />
     );
   }
-
-  // Home view
-  const borrowed = store.myBorrows();
 
   if (!ready) return null;
 
@@ -192,38 +207,34 @@ function MiniApp() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--tg-theme-section-header-text-color,#6d6d71)]">
             My Borrowed Books
           </h2>
-          {borrowed.length === 0 ? (
+          {loansLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--tg-theme-button-color,#5288c1)] border-t-transparent" />
+            </div>
+          ) : loans.length === 0 ? (
             <p className="py-8 text-center text-sm text-[var(--tg-theme-hint-color,#999)]">
               No books borrowed yet. Scan a QR code to get started.
             </p>
           ) : (
             <div className="flex flex-col gap-2">
-              {borrowed.map((record) => (
+              {loans.map((loan) => (
                 <div
-                  key={record.copy.qrCodeId}
+                  key={loan.qrCodeId}
                   className="flex items-center gap-3 rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3"
                 >
-                  {record.book.imageUrl ? (
-                    <img
-                      src={record.book.imageUrl}
-                      alt={record.book.title}
-                      className="h-16 w-11 rounded-md object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-11 items-center justify-center rounded-md bg-[var(--tg-theme-bg-color,#fff)]">
-                      <span className="text-xl">📚</span>
-                    </div>
-                  )}
+                  <div className="flex h-16 w-11 items-center justify-center rounded-md bg-[var(--tg-theme-bg-color,#fff)]">
+                    <span className="text-xl">📚</span>
+                  </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-[var(--tg-theme-text-color,#000)]">
-                      {record.book.title}
+                      {loan.title}
                     </p>
                     <p className="text-sm text-[var(--tg-theme-hint-color,#999)]">
-                      {record.book.author}
+                      {loan.author}
                     </p>
                     <p className="mt-0.5 text-xs text-[var(--tg-theme-subtitle-text-color,#999)]">
                       Due:{" "}
-                      {record.dueDate.toLocaleDateString(undefined, {
+                      {new Date(loan.dueDate).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

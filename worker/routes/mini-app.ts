@@ -23,6 +23,7 @@ export const miniApp = new Hono<{ Bindings: Env }>()
 
     const db = drizzle(c.env.DATABASE, { schema });
     const loans = await getUserActiveLoans(db, telegramUserId);
+    console.log("found the active loans!");
 
     return c.json({ loans });
   })

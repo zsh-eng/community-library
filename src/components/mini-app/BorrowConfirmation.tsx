@@ -1,21 +1,26 @@
-import type { BorrowRecord } from "@/data/borrow-store";
+import type { BorrowResult } from "@/hooks/use-borrow-book";
+import type { BookCopy } from "@/types";
 import confetti from "canvas-confetti";
 import { useCallback, useEffect } from "react";
 
 import "./BorrowConfirmation.css";
 
 export function BorrowConfirmation({
-  record,
+  result,
+  copy,
   onDone,
 }: {
-  record: BorrowRecord;
+  result: BorrowResult;
+  copy: BookCopy;
   onDone: () => void;
 }) {
-  const dueDateStr = record.dueDate.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const dueDateStr = result.loan
+    ? new Date(result.loan.dueDate).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Unknown";
 
   const fireConfetti = useCallback(() => {
     confetti({
@@ -69,7 +74,7 @@ export function BorrowConfirmation({
           You have successfully borrowed
         </p>
         <p className="font-semibold text-[var(--tg-theme-text-color,#000)]">
-          {record.book.title}
+          {result.book?.title ?? "Unknown Book"}
         </p>
       </div>
 
@@ -80,7 +85,7 @@ export function BorrowConfirmation({
             Author
           </span>
           <span className="text-sm font-medium text-[var(--tg-theme-text-color,#000)]">
-            {record.book.author}
+            {result.book?.author ?? "Unknown"}
           </span>
         </div>
         <div className="flex justify-between border-t border-[var(--tg-theme-section-separator-color,#e0e0e0)] py-2">
@@ -88,7 +93,7 @@ export function BorrowConfirmation({
             Location
           </span>
           <span className="text-sm font-medium text-[var(--tg-theme-text-color,#000)]">
-            {record.copy.location.name}
+            {copy.location.name}
           </span>
         </div>
         <div className="flex justify-between border-t border-[var(--tg-theme-section-separator-color,#e0e0e0)] py-2">
@@ -96,7 +101,7 @@ export function BorrowConfirmation({
             Copy #
           </span>
           <span className="text-sm font-medium text-[var(--tg-theme-text-color,#000)]">
-            {record.copy.copyNumber}
+            {result.copyNumber ?? copy.copyNumber}
           </span>
         </div>
         <div className="flex justify-between border-t border-[var(--tg-theme-section-separator-color,#e0e0e0)] py-2">
