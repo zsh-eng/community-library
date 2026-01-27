@@ -7,7 +7,6 @@ type BookDetailProps = {
   isBorrowed: boolean;
   onScanLocation: () => void;
   onScanReturn: () => void;
-  onBack: () => void;
 };
 
 export function BookDetailView({
@@ -107,10 +106,7 @@ export function BookDetailView({
           <button
             disabled={unavailable}
             onClick={onScanLocation}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)] disabled:opacity-40"
-            style={{
-              backgroundColor: "var(--tg-theme-button-color, #5288c1)",
-            }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)] bg-(--tg-theme-button-color,#5288c1) disabled:bg-[var(--tg-theme-section-bg-color,#f4f4f5)]"
           >
             {isBorrowed ? (
               "Already Borrowed"
@@ -147,7 +143,7 @@ export function BookDetailView({
 
 function MetaCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3">
+    <div className="rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3">
       <p className="text-xs text-[var(--tg-theme-hint-color,#999)]">{label}</p>
       <p className="mt-0.5 text-sm font-medium text-[var(--tg-theme-text-color,#000)]">
         {value}
