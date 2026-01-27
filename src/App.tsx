@@ -3,14 +3,22 @@ import Book from "@/Book";
 import Canvas from "@/Canvas";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DataCacheProvider } from "@/contexts/DataCacheContext";
+import { client } from "@/lib/api-client";
 import { extractIdFromSlug } from "@/lib/utils";
-import { hc } from "hono/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import type { AppType } from "../worker/index";
 
 const MiniApp = lazy(() => import("@/routes/MiniApp"));
 
-const client = hc<AppType>(import.meta.env.BASE_URL);
+// React Query client for data fetching
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 // In-memory cache for Canvas data loader
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,11 +81,13 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system">
-      <DataCacheProvider>
-        <RouterProvider router={router} />
-      </DataCacheProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system">
+        <DataCacheProvider>
+          <RouterProvider router={router} />
+        </DataCacheProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

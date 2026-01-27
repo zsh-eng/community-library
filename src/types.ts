@@ -7,7 +7,7 @@ export interface Book {
   createdAt: string;
 }
 
-interface Loan {
+export interface Loan {
   id: number;
   qrCodeId: string;
   telegramUserId: number;
@@ -18,12 +18,12 @@ interface Loan {
   lastReminderSent: string | null;
 }
 
-interface Location {
+export interface Location {
   id: number;
   name: string;
 }
 
-interface BookCopy {
+export interface BookCopy {
   qrCodeId: string;
   bookId: number;
   copyNumber: number;

@@ -1,17 +1,23 @@
-import type { Book } from "@/data/books.ts";
+import type { BookCopy, BookDetail } from "@/types";
 
-export function BookDetail({
-  book,
-  isBorrowed,
-  onScanLocation,
-  onBack,
-}: {
-  book: Book;
+type BookDetailProps = {
+  book: BookDetail;
+  copy: BookCopy;
   isBorrowed: boolean;
   onScanLocation: () => void;
   onBack: () => void;
-}) {
-  const unavailable = !book.available || isBorrowed;
+};
+
+export function BookDetailView({
+  book,
+  copy,
+  isBorrowed,
+  onScanLocation,
+  onBack,
+}: BookDetailProps) {
+  // Check if the copy is available: no active loans and status is available
+  const hasActiveLoan = copy.loans.length > 0;
+  const unavailable = copy.status !== "available" || hasActiveLoan || isBorrowed;
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--tg-theme-bg-color,#fff)]">
@@ -44,11 +50,17 @@ export function BookDetail({
       <div className="flex flex-1 flex-col gap-5 p-4 pt-0">
         {/* Cover */}
         <div className="flex justify-center">
-          <img
-            src={book.coverUrl}
-            alt={book.title}
-            className="h-60 w-40 rounded-xl object-cover shadow-md"
-          />
+          {book.imageUrl ? (
+            <img
+              src={book.imageUrl}
+              alt={book.title}
+              className="h-60 w-40 rounded-xl object-cover shadow-md"
+            />
+          ) : (
+            <div className="flex h-60 w-40 items-center justify-center rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] shadow-md">
+              <span className="text-4xl">📚</span>
+            </div>
+          )}
         </div>
 
         {/* Info */}
@@ -63,8 +75,8 @@ export function BookDetail({
 
         {/* Meta */}
         <div className="grid grid-cols-2 gap-3">
-          <MetaCard label="Category" value={book.category} />
-          <MetaCard label="Location" value={book.location} />
+          <MetaCard label="Copy #" value={String(copy.copyNumber)} />
+          <MetaCard label="Location" value={copy.location.name} />
           <MetaCard label="ISBN" value={book.isbn} />
           <MetaCard
             label="Status"
@@ -73,9 +85,11 @@ export function BookDetail({
         </div>
 
         {/* Description */}
-        <p className="text-sm leading-relaxed text-[var(--tg-theme-text-color,#000)]">
-          {book.description}
-        </p>
+        {book.description && (
+          <p className="text-sm leading-relaxed text-[var(--tg-theme-text-color,#000)]">
+            {book.description}
+          </p>
+        )}
 
         {/* Action */}
         <div className="mt-auto pb-4 mb-4">
@@ -89,7 +103,7 @@ export function BookDetail({
           >
             {isBorrowed ? (
               "Already Borrowed"
-            ) : book.available ? (
+            ) : !hasActiveLoan && copy.status === "available" ? (
               <>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

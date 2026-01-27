@@ -1,4 +1,4 @@
-import type { BorrowRecord } from "@/data/borrow-store.ts";
+import type { BorrowRecord } from "@/data/borrow-store";
 import confetti from "canvas-confetti";
 import { useCallback, useEffect } from "react";
 
@@ -88,7 +88,15 @@ export function BorrowConfirmation({
             Location
           </span>
           <span className="text-sm font-medium text-[var(--tg-theme-text-color,#000)]">
-            {record.book.location}
+            {record.copy.location.name}
+          </span>
+        </div>
+        <div className="flex justify-between border-t border-[var(--tg-theme-section-separator-color,#e0e0e0)] py-2">
+          <span className="text-sm text-[var(--tg-theme-hint-color,#999)]">
+            Copy #
+          </span>
+          <span className="text-sm font-medium text-[var(--tg-theme-text-color,#000)]">
+            {record.copy.copyNumber}
           </span>
         </div>
         <div className="flex justify-between border-t border-[var(--tg-theme-section-separator-color,#e0e0e0)] py-2">

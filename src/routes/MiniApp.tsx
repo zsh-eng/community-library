@@ -1,22 +1,21 @@
-import { BookDetail } from "@/components/mini-app/BookDetail.tsx";
-import { BookNotFound } from "@/components/mini-app/BookNotFound.tsx";
-import { BorrowConfirmation } from "@/components/mini-app/BorrowConfirmation.tsx";
-import { UserProfile } from "@/components/mini-app/UserProfile.tsx";
-import type { Book, LocationCode } from "@/data/books.ts";
-import { lookupBook } from "@/data/books.ts";
-import type { BorrowRecord } from "@/data/borrow-store.ts";
-import { useBorrowStore } from "@/hooks/use-borrow-store.ts";
-import { useTelegramUser } from "@/hooks/use-telegram-user.ts";
+import { BookDetailView } from "@/components/mini-app/BookDetail";
+import { BookNotFound } from "@/components/mini-app/BookNotFound";
+import { BorrowConfirmation } from "@/components/mini-app/BorrowConfirmation";
+import { UserProfile } from "@/components/mini-app/UserProfile";
+import type { BorrowRecord } from "@/data/borrow-store";
+import { useBookCopyLookup } from "@/hooks/use-book-query";
+import { useBorrowStore } from "@/hooks/use-borrow-store";
+import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { initTelegramSdk } from "@/lib/telegram";
+import type { BookCopy, BookDetail, Location } from "@/types";
 import { popup, qrScanner } from "@telegram-apps/sdk-react";
 import { useEffect, useState } from "react";
 import "../mini-app.css";
 
-const VALID_LOCATIONS: LocationCode[] = ["ELM", "CENDANA", "SAGA"];
-
 type View =
   | { name: "home" }
-  | { name: "book-detail"; book: Book }
+  | { name: "scanning"; qrCodeId: string }
+  | { name: "book-detail"; book: BookDetail; copy: BookCopy }
   | { name: "borrow-confirmation"; record: BorrowRecord }
   | { name: "book-not-found"; scannedText: string };
 
@@ -32,13 +31,35 @@ function MiniApp() {
   const store = useBorrowStore(userId);
   const [view, setView] = useState<View>({ name: "home" });
 
-  function handleScanned(text: string) {
-    const book = lookupBook(text);
-    if (book) {
-      setView({ name: "book-detail", book });
-    } else {
-      setView({ name: "book-not-found", scannedText: text });
+  // Fetch book copy when scanning
+  const scanningQrCode = view.name === "scanning" ? view.qrCodeId : null;
+  const {
+    data: lookupResult,
+    isLoading,
+    error,
+  } = useBookCopyLookup(scanningQrCode);
+
+  // Handle lookup result
+  useEffect(() => {
+    if (view.name !== "scanning") return;
+
+    if (isLoading) return;
+
+    if (error || !lookupResult) {
+      setView({ name: "book-not-found", scannedText: view.qrCodeId });
+      return;
     }
+
+    setView({
+      name: "book-detail",
+      book: lookupResult.book,
+      copy: lookupResult.copy,
+    });
+  }, [view, isLoading, error, lookupResult]);
+
+  function handleScanned(text: string) {
+    // Trigger the lookup by setting scanning state
+    setView({ name: "scanning", qrCodeId: text.trim() });
   }
 
   async function handleScannerOpen() {
@@ -55,52 +76,56 @@ function MiniApp() {
     }
   }
 
-  async function handleLocationScan(book: Book) {
+  async function handleLocationScan(book: BookDetail, copy: BookCopy) {
     try {
       const scanned = await qrScanner.open({
-        text: `Scan the ${book.locationQrCode} location QR code`,
+        text: `Scan the ${copy.location.name} location QR code`,
         capture: () => true,
       });
 
       if (!scanned) return;
 
-      const locationCode = scanned.trim().toUpperCase();
+      const scannedLocationName = scanned.trim();
 
-      // Check if it's a valid location code
-      if (!VALID_LOCATIONS.includes(locationCode as LocationCode)) {
-        popup.show({
-          title: "Invalid QR Code",
-          message:
-            "Please scan a valid location QR code (ELM, CENDANA, or SAGA).",
-          buttons: [{ type: "ok" }],
-        });
-        return;
-      }
-
-      // Check if location matches the book's location
-      if (locationCode !== book.locationQrCode) {
+      // Check if it matches the expected location name
+      if (!isValidLocation(scannedLocationName, copy.location)) {
         popup.show({
           title: "Wrong Location",
-          message: `This book is located at ${book.locationQrCode}. You scanned ${locationCode}. Please go to the correct location.`,
+          message: `This book is located at ${copy.location.name}. You scanned "${scannedLocationName}". Please go to the correct location.`,
           buttons: [{ type: "ok" }],
         });
         return;
       }
 
       // Location verified, proceed with borrowing
-      const record = store.borrow(book);
+      const record = store.borrow(book, copy);
       setView({ name: "borrow-confirmation", record });
     } catch {
       // Scanner closed by user, ignore
     }
   }
 
+  // Show loading state while scanning
+  if (view.name === "scanning") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--tg-theme-bg-color,#fff)]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--tg-theme-button-color,#5288c1)] border-t-transparent" />
+          <p className="text-[var(--tg-theme-hint-color,#999)]">
+            Looking up book...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (view.name === "book-detail") {
     return (
-      <BookDetail
+      <BookDetailView
         book={view.book}
-        isBorrowed={store.isBorrowed(view.book.id)}
-        onScanLocation={() => handleLocationScan(view.book)}
+        copy={view.copy}
+        isBorrowed={store.isBorrowed(view.copy.qrCodeId)}
+        onScanLocation={() => handleLocationScan(view.book, view.copy)}
         onBack={() => setView({ name: "home" })}
       />
     );
@@ -175,14 +200,20 @@ function MiniApp() {
             <div className="flex flex-col gap-2">
               {borrowed.map((record) => (
                 <div
-                  key={record.book.id}
+                  key={record.copy.qrCodeId}
                   className="flex items-center gap-3 rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3"
                 >
-                  <img
-                    src={record.book.coverUrl}
-                    alt={record.book.title}
-                    className="h-16 w-11 rounded-md object-cover"
-                  />
+                  {record.book.imageUrl ? (
+                    <img
+                      src={record.book.imageUrl}
+                      alt={record.book.title}
+                      className="h-16 w-11 rounded-md object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-11 items-center justify-center rounded-md bg-[var(--tg-theme-bg-color,#fff)]">
+                      <span className="text-xl">📚</span>
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-[var(--tg-theme-text-color,#000)]">
                       {record.book.title}
@@ -207,6 +238,14 @@ function MiniApp() {
       </div>
     </div>
   );
+}
+
+/**
+ * Check if the scanned location matches the expected location.
+ * Matches by name (case-insensitive).
+ */
+function isValidLocation(scannedText: string, expected: Location): boolean {
+  return scannedText.toLowerCase() === expected.name.toLowerCase();
 }
 
 export default MiniApp;
