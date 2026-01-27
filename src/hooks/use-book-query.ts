@@ -1,5 +1,5 @@
 import { client } from "@/lib/api-client";
-import type { BookCopy, BookDetail } from "@/types";
+import type { Book, BookCopy, BookDetail } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -39,7 +39,7 @@ export function useBookCopyLookup(qrCodeId: string | null) {
   return useQuery({
     queryKey: ["book-copy-lookup", qrCodeId],
     queryFn: async (): Promise<{
-      book: BookDetail;
+      book: Book;
       copy: BookCopy;
     } | null> => {
       if (!qrCodeId) {
@@ -47,35 +47,16 @@ export function useBookCopyLookup(qrCodeId: string | null) {
       }
 
       // First, get all books to find which one has this QR code
-      const booksRes = await client.api.books.$get();
-      if (!booksRes.ok) {
-        throw new Error("Failed to fetch books");
+      const bookCopyRes = await client.api.copies[":qrCodeId"].$get({
+        param: { qrCodeId },
+      });
+
+      if (!bookCopyRes.ok) {
+        throw new Error("Failed to fetch book copies");
       }
 
-      const { books } = await booksRes.json();
-
-      // For each book, we need to fetch the full details to get copies
-      // This is not optimal but works for the current scale
-      for (const book of books) {
-        const detailRes = await client.api.books[":id"].$get({
-          param: { id: String(book.id) },
-        });
-
-        if (!detailRes.ok) continue;
-
-        const { book: bookDetail } = (await detailRes.json()) as {
-          book: BookDetail;
-        };
-        const matchingCopy = bookDetail.bookCopies.find(
-          (copy) => copy.qrCodeId === qrCodeId,
-        );
-
-        if (matchingCopy) {
-          return { book: bookDetail, copy: matchingCopy };
-        }
-      }
-
-      return null;
+      const data = await bookCopyRes.json();
+      return data;
     },
     enabled: qrCodeId !== null,
   });

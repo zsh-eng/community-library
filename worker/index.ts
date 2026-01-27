@@ -58,6 +58,30 @@ const route = app
 
     return c.json({ book });
   })
+  .get("/copies/:qrCodeId", async (c) => {
+    const db = drizzle(c.env.DATABASE, {
+      schema,
+    });
+    const qrCodeId = c.req.param("qrCodeId");
+
+    const bookCopy = await db.query.bookCopies.findFirst({
+      where: eq(schema.bookCopies.qrCodeId, qrCodeId),
+      with: {
+        book: true,
+        location: true,
+        loans: {
+          where: isNull(schema.loans.returnedAt),
+        },
+      },
+    });
+
+    if (!bookCopy) {
+      return c.json({ error: "Book copy not found" }, 404);
+    }
+    const { book, ...copy } = bookCopy;
+
+    return c.json({ book, copy });
+  })
   .route("/bot", botApp);
 
 export default app;

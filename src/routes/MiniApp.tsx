@@ -7,7 +7,7 @@ import { useBookCopyLookup } from "@/hooks/use-book-query";
 import { useBorrowStore } from "@/hooks/use-borrow-store";
 import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { initTelegramSdk } from "@/lib/telegram";
-import type { BookCopy, BookDetail, Location } from "@/types";
+import type { Book, BookCopy, BookDetail, Location } from "@/types";
 import { popup, qrScanner } from "@telegram-apps/sdk-react";
 import { useEffect, useState } from "react";
 import "../mini-app.css";
@@ -15,7 +15,7 @@ import "../mini-app.css";
 type View =
   | { name: "home" }
   | { name: "scanning"; qrCodeId: string }
-  | { name: "book-detail"; book: BookDetail; copy: BookCopy }
+  | { name: "book-detail"; book: Book; copy: BookCopy }
   | { name: "borrow-confirmation"; record: BorrowRecord }
   | { name: "book-not-found"; scannedText: string };
 
