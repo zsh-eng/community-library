@@ -4,6 +4,7 @@ import { BorrowConfirmation } from "@/components/mini-app/BorrowConfirmation";
 import { UserProfile } from "@/components/mini-app/UserProfile";
 import { useBookCopyLookup } from "@/hooks/use-book-query";
 import { type BorrowResult, useBorrowBook } from "@/hooks/use-borrow-book";
+import { type ReturnResult, useReturnBook } from "@/hooks/use-return-book";
 import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { useUserLoans } from "@/hooks/use-user-loans";
 import { initTelegramSdk } from "@/lib/telegram";
@@ -15,9 +16,12 @@ import "../mini-app.css";
 type View =
   | { name: "home" }
   | { name: "scanning"; qrCodeId: string }
-  | { name: "book-detail"; book: Book; copy: BookCopy }
+  | { name: "scanning-for-return"; qrCodeId: string }
+  | { name: "book-detail"; book: Book; copy: BookCopy; mode: "borrow" | "return" }
   | { name: "borrowing"; book: Book; copy: BookCopy }
   | { name: "borrow-confirmation"; result: BorrowResult; copy: BookCopy }
+  | { name: "returning"; book: Book; copy: BookCopy }
+  | { name: "return-confirmation"; result: ReturnResult; copy: BookCopy }
   | { name: "book-not-found"; scannedText: string };
 
 function MiniApp() {
@@ -30,10 +34,14 @@ function MiniApp() {
   const user = useTelegramUser();
   const { data: loans = [], isLoading: loansLoading } = useUserLoans();
   const borrowMutation = useBorrowBook();
+  const returnMutation = useReturnBook();
   const [view, setView] = useState<View>({ name: "home" });
 
-  // Fetch book copy when scanning
-  const scanningQrCode = view.name === "scanning" ? view.qrCodeId : null;
+  // Fetch book copy when scanning (for borrow or return)
+  const scanningQrCode =
+    view.name === "scanning" || view.name === "scanning-for-return"
+      ? view.qrCodeId
+      : null;
   const {
     data: lookupResult,
     isLoading,
@@ -42,7 +50,7 @@ function MiniApp() {
 
   // Handle lookup result
   useEffect(() => {
-    if (view.name !== "scanning") return;
+    if (view.name !== "scanning" && view.name !== "scanning-for-return") return;
 
     if (isLoading) return;
 
@@ -51,16 +59,23 @@ function MiniApp() {
       return;
     }
 
+    const mode = view.name === "scanning-for-return" ? "return" : "borrow";
     setView({
       name: "book-detail",
       book: lookupResult.book,
       copy: lookupResult.copy,
+      mode,
     });
   }, [view, isLoading, error, lookupResult]);
 
   function handleScanned(text: string) {
     // Trigger the lookup by setting scanning state
     setView({ name: "scanning", qrCodeId: text.trim() });
+  }
+
+  function handleLoanTap(qrCodeId: string) {
+    // Trigger lookup for return mode
+    setView({ name: "scanning-for-return", qrCodeId });
   }
 
   async function handleScannerOpen() {
@@ -110,7 +125,7 @@ function MiniApp() {
             error instanceof Error ? error.message : "Failed to borrow book",
           buttons: [{ type: "ok" }],
         });
-        setView({ name: "book-detail", book, copy });
+        setView({ name: "book-detail", book, copy, mode: "borrow" });
       }
     } catch {
       // Scanner closed by user, ignore
@@ -122,10 +137,54 @@ function MiniApp() {
     return loans.some((loan) => loan.qrCodeId === qrCodeId);
   }
 
-  // Show loading state while scanning or borrowing
-  if (view.name === "scanning" || view.name === "borrowing") {
+  async function handleReturnScan(book: Book, copy: BookCopy) {
+    try {
+      const scanned = await qrScanner.open({
+        text: `Scan the ${copy.location.name} location QR code to return`,
+        capture: () => true,
+      });
+
+      if (!scanned) return;
+
+      const scannedLocationName = scanned.trim();
+
+      // Check if it matches the expected location name
+      if (!isValidLocation(scannedLocationName, copy.location)) {
+        popup.show({
+          title: "Wrong Location",
+          message: `Please return this book to ${copy.location.name}. You scanned "${scannedLocationName}".`,
+          buttons: [{ type: "ok" }],
+        });
+        return;
+      }
+
+      // Location verified, proceed with return
+      setView({ name: "returning", book, copy });
+      try {
+        const result = await returnMutation.mutateAsync(copy.qrCodeId);
+        setView({ name: "return-confirmation", result, copy });
+      } catch (error) {
+        popup.show({
+          title: "Return Failed",
+          message:
+            error instanceof Error ? error.message : "Failed to return book",
+          buttons: [{ type: "ok" }],
+        });
+        setView({ name: "book-detail", book, copy, mode: "return" });
+      }
+    } catch {
+      // Scanner closed by user, ignore
+    }
+  }
+
+  // Show loading state while scanning, borrowing, or returning
+  if (view.name === "scanning" || view.name === "scanning-for-return" || view.name === "borrowing" || view.name === "returning") {
     const message =
-      view.name === "scanning" ? "Looking up book..." : "Borrowing book...";
+      view.name === "scanning"
+        ? "Looking up book..."
+        : view.name === "borrowing"
+          ? "Borrowing book..."
+          : "Returning book...";
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--tg-theme-bg-color,#fff)]">
         <div className="flex flex-col items-center gap-4">
@@ -141,8 +200,10 @@ function MiniApp() {
       <BookDetailView
         book={view.book}
         copy={view.copy}
+        mode={view.mode}
         isBorrowed={isBorrowedByUser(view.copy.qrCodeId)}
         onScanLocation={() => handleLocationScan(view.book, view.copy)}
+        onScanReturn={() => handleReturnScan(view.book, view.copy)}
         onBack={() => setView({ name: "home" })}
       />
     );
@@ -155,6 +216,43 @@ function MiniApp() {
         copy={view.copy}
         onDone={() => setView({ name: "home" })}
       />
+    );
+  }
+
+  if (view.name === "return-confirmation") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--tg-theme-bg-color,#fff)] p-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#22c55e"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-[var(--tg-theme-text-color,#000)]">
+            Book Returned!
+          </h2>
+          <p className="text-[var(--tg-theme-hint-color,#999)]">
+            Thank you for returning <strong>{view.result.book?.title}</strong>.
+          </p>
+          <button
+            onClick={() => setView({ name: "home" })}
+            className="mt-4 w-full rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)]"
+            style={{ backgroundColor: "var(--tg-theme-button-color, #5288c1)" }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -218,9 +316,10 @@ function MiniApp() {
           ) : (
             <div className="flex flex-col gap-2">
               {loans.map((loan) => (
-                <div
+                <button
                   key={loan.qrCodeId}
-                  className="flex items-center gap-3 rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3"
+                  onClick={() => handleLoanTap(loan.qrCodeId)}
+                  className="flex w-full items-center gap-3 rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3 text-left transition-opacity active:opacity-70"
                 >
                   {loan?.imageUrl ? (
                     <img
@@ -249,7 +348,20 @@ function MiniApp() {
                       })}
                     </p>
                   </div>
-                </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--tg-theme-hint-color, #999)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
               ))}
             </div>
           )}

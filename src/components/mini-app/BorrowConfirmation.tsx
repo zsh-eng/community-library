@@ -25,10 +25,10 @@ export function BorrowConfirmation({
 
   const dueDateStr = result.loan
     ? new Date(result.loan.dueDate).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
     : "";
 
   const fireConfetti = useCallback(() => {
