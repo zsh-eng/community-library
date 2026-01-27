@@ -272,39 +272,41 @@ function MiniApp() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--tg-theme-bg-color,#fff)]">
-      <div className="flex flex-col gap-5 p-4">
+      <div className="flex flex-col gap-5 px-4 pt-2 pb-4">
         {/* User profile */}
         {user && <UserProfile user={user} />}
 
         {/* Scan button */}
-        <button
-          onClick={handleScannerOpen}
-          className="flex items-center justify-center gap-2 rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)]"
-          style={{ backgroundColor: "var(--tg-theme-button-color, #5288c1)" }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="overflow-hidden rounded-2xl">
+          <button
+            onClick={handleScannerOpen}
+            className="flex w-full items-center justify-center gap-2 py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)]"
+            style={{ backgroundColor: "var(--tg-theme-button-color, #5288c1)" }}
           >
-            <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-            <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-            <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-            <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-            <rect x="7" y="7" width="10" height="10" rx="1" />
-          </svg>
-          Scan Book QR Code
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+              <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+              <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+              <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+              <rect x="7" y="7" width="10" height="10" rx="1" />
+            </svg>
+            Scan Book QR Code
+          </button>
+        </div>
 
         {/* Borrowed books list */}
-        <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--tg-theme-section-header-text-color,#6d6d71)]">
+        <div className="flex flex-col gap-3 mt-4">
+          <h2 className="pl-[15px] text-xs font-medium uppercase tracking-wide text-[var(--tg-theme-section-header-text-color,#6d6d71)]">
             My Borrowed Books
           </h2>
           {loansLoading ? (
@@ -312,58 +314,62 @@ function MiniApp() {
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--tg-theme-button-color,#5288c1)] border-t-transparent" />
             </div>
           ) : loans.length === 0 ? (
-            <p className="py-8 text-center text-sm text-[var(--tg-theme-hint-color,#999)]">
-              No books borrowed yet. Scan a QR code to get started.
-            </p>
+            <div className="overflow-hidden rounded-2xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)]">
+              <p className="py-8 text-center text-sm text-[var(--tg-theme-hint-color,#999)]">
+                No books borrowed yet. Scan a QR code to get started.
+              </p>
+            </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {loans.map((loan) => (
-                <button
-                  key={loan.qrCodeId}
-                  onClick={() => handleLoanTap(loan.qrCodeId)}
-                  className="flex w-full items-center gap-3 rounded-xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)] p-3 text-left transition-opacity active:opacity-70"
-                >
-                  {loan?.imageUrl ? (
-                    <img
-                      src={loan.imageUrl}
-                      alt={loan.title}
-                      className="h-16 w-11 rounded-md bg-[var(--tg-theme-bg-color,#fff)]"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-11 items-center justify-center rounded-md bg-[var(--tg-theme-bg-color,#fff)]">
-                      <span className="text-xl">📚</span>
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-[var(--tg-theme-text-color,#000)]">
-                      {loan.title}
-                    </p>
-                    <p className="text-sm text-[var(--tg-theme-hint-color,#999)]">
-                      {loan.author}
-                    </p>
-                    <p className="mt-0.5 text-xs text-[var(--tg-theme-subtitle-text-color,#999)]">
-                      Due:{" "}
-                      {new Date(loan.dueDate).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="var(--tg-theme-hint-color, #999)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+            <div className="flex flex-col overflow-hidden rounded-2xl bg-[var(--tg-theme-section-bg-color,#f4f4f5)]">
+              {loans.map((loan, index) => (
+                <div key={loan.qrCodeId}>
+                  {index > 0 && <div className="mx-8 h-px bg-tg-separator" />}
+                  <button
+                    onClick={() => handleLoanTap(loan.qrCodeId)}
+                    className="flex w-full items-center gap-3 p-3 text-left transition-opacity active:opacity-70"
                   >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
-                </button>
+                    {loan?.imageUrl ? (
+                      <img
+                        src={loan.imageUrl}
+                        alt={loan.title}
+                        className="h-16 w-11 rounded-md bg-[var(--tg-theme-bg-color,#fff)]"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-11 items-center justify-center rounded-md bg-[var(--tg-theme-bg-color,#fff)]">
+                        <span className="text-xl">📚</span>
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-[var(--tg-theme-text-color,#000)]">
+                        {loan.title}
+                      </p>
+                      <p className="text-sm text-[var(--tg-theme-hint-color,#999)]">
+                        {loan.author}
+                      </p>
+                      <p className="mt-0.5 text-xs text-[var(--tg-theme-subtitle-text-color,#999)]">
+                        Due:{" "}
+                        {new Date(loan.dueDate).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--tg-theme-hint-color, #999)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
           )}
