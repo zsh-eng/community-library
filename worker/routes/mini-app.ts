@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import * as schema from "../db/schema";
-import { getUserActiveLoans } from "../lib/book";
+import { borrowBook, getUserActiveLoans } from "../lib/book";
 import { telegramAuth } from "../middleware/telegram-auth";
 
 /**
@@ -25,4 +25,44 @@ export const miniApp = new Hono<{ Bindings: Env }>()
     const loans = await getUserActiveLoans(db, telegramUserId);
 
     return c.json({ loans });
+  })
+  .post("/books/:qrCodeId/borrow", async (c) => {
+    const initData = c.get("initData");
+    const telegramUserId = initData.user?.id;
+    const telegramUsername = initData.user?.username;
+
+    if (!telegramUserId) {
+      return c.json({ error: "User ID not found in init data" }, 400);
+    }
+
+    const { qrCodeId } = c.req.param();
+    const db = drizzle(c.env.DATABASE, { schema });
+
+    const result = await borrowBook(
+      db,
+      qrCodeId,
+      telegramUserId,
+      telegramUsername,
+    );
+
+    if (result.success && result.loan && result.book) {
+      return c.json({
+        success: true,
+        loan: {
+          id: result.loan.id,
+          borrowedAt: result.loan.borrowedAt,
+          dueDate: result.loan.dueDate,
+        },
+        book: {
+          title: result.book.title,
+          author: result.book.author,
+        },
+        copyNumber: result.copyNumber,
+      });
+    }
+
+    return c.json(
+      { success: false, error: result.error || "Failed to borrow book" },
+      400,
+    );
   });
