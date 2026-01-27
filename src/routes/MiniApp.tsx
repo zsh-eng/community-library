@@ -10,7 +10,7 @@ import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { useUserLoans } from "@/hooks/use-user-loans";
 import { initTelegramSdk } from "@/lib/telegram";
 import type { Book, BookCopy, Location } from "@/types";
-import { popup, qrScanner } from "@telegram-apps/sdk-react";
+import { backButton, popup, qrScanner } from "@telegram-apps/sdk-react";
 import { useEffect, useState } from "react";
 import "../mini-app.css";
 
@@ -18,7 +18,12 @@ type View =
   | { name: "home" }
   | { name: "scanning"; qrCodeId: string }
   | { name: "scanning-for-return"; qrCodeId: string }
-  | { name: "book-detail"; book: Book; copy: BookCopy; mode: "borrow" | "return" }
+  | {
+      name: "book-detail";
+      book: Book;
+      copy: BookCopy;
+      mode: "borrow" | "return";
+    }
   | { name: "borrowing"; book: Book; copy: BookCopy }
   | { name: "borrow-confirmation"; result: BorrowResult; copy: BookCopy }
   | { name: "returning"; book: Book; copy: BookCopy }
@@ -37,6 +42,26 @@ function MiniApp() {
   const borrowMutation = useBorrowBook();
   const returnMutation = useReturnBook();
   const [view, setView] = useState<View>({ name: "home" });
+
+  // Telegram back button: show on all screens except home
+  useEffect(() => {
+    if (!backButton.mount.isAvailable()) return;
+    backButton.mount();
+
+    const goHome = () => setView({ name: "home" });
+
+    if (view.name === "home") {
+      backButton.hide();
+    } else {
+      backButton.show();
+    }
+
+    const off = backButton.onClick(goHome);
+    return () => {
+      off();
+      backButton.hide();
+    };
+  }, [view.name]);
 
   // Fetch book copy when scanning (for borrow or return)
   const scanningQrCode =
@@ -179,7 +204,12 @@ function MiniApp() {
   }
 
   // Show loading state while scanning, borrowing, or returning
-  if (view.name === "scanning" || view.name === "scanning-for-return" || view.name === "borrowing" || view.name === "returning") {
+  if (
+    view.name === "scanning" ||
+    view.name === "scanning-for-return" ||
+    view.name === "borrowing" ||
+    view.name === "returning"
+  ) {
     const message =
       view.name === "scanning"
         ? "Looking up book..."
