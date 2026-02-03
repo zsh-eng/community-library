@@ -9,7 +9,8 @@ import { type ReturnResult, useReturnBook } from "@/hooks/use-return-book";
 import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { useUserLoans } from "@/hooks/use-user-loans";
 import { initTelegramSdk } from "@/lib/telegram";
-import type { Book, BookCopy, Location } from "@/types";
+import type { Book, BookCopy } from "@/types";
+import { classifyLocationScan, extractBookQrParam } from "@/lib/qr";
 import { backButton, popup, qrScanner } from "@telegram-apps/sdk-react";
 import { useEffect, useState } from "react";
 import "../mini-app.css";
@@ -120,7 +121,17 @@ function MiniApp() {
         capture: () => true,
       });
       if (result) {
-        handleScanned(result);
+        const bookCode = extractBookQrParam(result);
+        if (!bookCode) {
+          popup.show({
+            title: "Not a Book QR",
+            message:
+              "This doesn't look like a library book QR. Try scanning the code sticker inside the book.",
+            buttons: [{ type: "ok" }],
+          });
+          return;
+        }
+        handleScanned(bookCode);
       }
     } catch {
       // Scanner closed by user, ignore
@@ -136,13 +147,22 @@ function MiniApp() {
 
       if (!scanned) return;
 
-      const scannedLocationName = scanned.trim();
+      const scanResult = classifyLocationScan(scanned, copy.location);
+      if (scanResult.type === "book") {
+        popup.show({
+          title: "Book QR Scanned",
+          message:
+            "You scanned a book QR. For borrowing, scan the location QR posted at the library spot.",
+          buttons: [{ type: "ok" }],
+        });
+        return;
+      }
 
-      // Check if it matches the expected location name
-      if (!isValidLocation(scannedLocationName, copy.location)) {
+      if (scanResult.type === "invalid") {
+        const scannedLocationName = scanned.trim();
         popup.show({
           title: "Wrong Location",
-          message: `This book is located at ${copy.location.name}. You scanned "${scannedLocationName}". Please go to the correct location.`,
+          message: `This book is located at ${copy.location.name}. You scanned "${scannedLocationName || "unknown"}". Please go to the correct location QR.`,
           buttons: [{ type: "ok" }],
         });
         return;
@@ -181,13 +201,22 @@ function MiniApp() {
 
       if (!scanned) return;
 
-      const scannedLocationName = scanned.trim();
+      const scanResult = classifyLocationScan(scanned, copy.location);
+      if (scanResult.type === "book") {
+        popup.show({
+          title: "Book QR Scanned",
+          message:
+            "You scanned a book QR. For returns, scan the location QR at the library spot.",
+          buttons: [{ type: "ok" }],
+        });
+        return;
+      }
 
-      // Check if it matches the expected location name
-      if (!isValidLocation(scannedLocationName, copy.location)) {
+      if (scanResult.type === "invalid") {
+        const scannedLocationName = scanned.trim();
         popup.show({
           title: "Wrong Location",
-          message: `Please return this book to ${copy.location.name}. You scanned "${scannedLocationName}".`,
+          message: `Please return this book to ${copy.location.name}. You scanned "${scannedLocationName || "unknown"}".`,
           buttons: [{ type: "ok" }],
         });
         return;
@@ -389,14 +418,6 @@ function MiniApp() {
       </div>
     </div>
   );
-}
-
-/**
- * Check if the scanned location matches the expected location.
- * Matches by name (case-insensitive).
- */
-function isValidLocation(scannedText: string, expected: Location): boolean {
-  return scannedText.toLowerCase() === expected.name.toLowerCase();
 }
 
 export default MiniApp;
