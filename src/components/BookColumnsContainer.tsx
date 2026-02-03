@@ -64,7 +64,7 @@ export const BookColumnsContainer = memo(function BookColumnsContainer({
     }
 
     return cols;
-  }, [books]);
+  }, [shuffledBooks]);
 
   // Generate random speeds and directions for each column
   const columnConfigs = useMemo(() => {
