@@ -107,7 +107,7 @@ export function BookDetailView({
           <button
             disabled={unavailable}
             onClick={onScanLocation}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)] bg-(--tg-theme-button-color,#5288c1) disabled:bg-[var(--tg-theme-section-bg-color,#f4f4f5)]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)] bg-(--tg-theme-button-color,#5288c1) disabled:bg-(--tg-theme-button-color,#5288c1)/50"
           >
             {isBorrowed ? (
               "Already Borrowed"
