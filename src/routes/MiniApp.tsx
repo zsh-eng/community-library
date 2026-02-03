@@ -17,12 +17,11 @@ import "../mini-app.css";
 type View =
   | { name: "home" }
   | { name: "scanning"; qrCodeId: string }
-  | { name: "scanning-for-return"; qrCodeId: string }
   | {
       name: "book-detail";
       book: Book;
       copy: BookCopy;
-      mode: "borrow" | "return";
+      state: "available" | "borrowed-by-user" | "borrowed-by-other";
     }
   | { name: "borrowing"; book: Book; copy: BookCopy }
   | { name: "borrow-confirmation"; result: BorrowResult; copy: BookCopy }
@@ -63,11 +62,8 @@ function MiniApp() {
     };
   }, [view.name]);
 
-  // Fetch book copy when scanning (for borrow or return)
-  const scanningQrCode =
-    view.name === "scanning" || view.name === "scanning-for-return"
-      ? view.qrCodeId
-      : null;
+  // Fetch book copy when scanning
+  const scanningQrCode = view.name === "scanning" ? view.qrCodeId : null;
   const {
     data: lookupResult,
     isLoading,
@@ -76,7 +72,7 @@ function MiniApp() {
 
   // Handle lookup result
   useEffect(() => {
-    if (view.name !== "scanning" && view.name !== "scanning-for-return") return;
+    if (view.name !== "scanning") return;
 
     if (isLoading) return;
 
@@ -85,14 +81,23 @@ function MiniApp() {
       return;
     }
 
-    const mode = view.name === "scanning-for-return" ? "return" : "borrow";
+    const isBorrowedByUser = loans.some(
+      (loan) => loan.qrCodeId === lookupResult.copy.qrCodeId,
+    );
+    const isBorrowedByOther =
+      lookupResult.copy.status !== "available" ||
+      lookupResult.copy.loans.length > 0;
     setView({
       name: "book-detail",
       book: lookupResult.book,
       copy: lookupResult.copy,
-      mode,
+      state: isBorrowedByUser
+        ? "borrowed-by-user"
+        : isBorrowedByOther
+          ? "borrowed-by-other"
+          : "available",
     });
-  }, [view, isLoading, error, lookupResult]);
+  }, [view, isLoading, error, lookupResult, loans]);
 
   function handleScanned(text: string) {
     // Trigger the lookup by setting scanning state
@@ -100,8 +105,7 @@ function MiniApp() {
   }
 
   function handleLoanTap(qrCodeId: string) {
-    // Trigger lookup for return mode
-    setView({ name: "scanning-for-return", qrCodeId });
+    setView({ name: "scanning", qrCodeId });
   }
 
   async function handleScannerOpen() {
@@ -151,16 +155,16 @@ function MiniApp() {
             error instanceof Error ? error.message : "Failed to borrow book",
           buttons: [{ type: "ok" }],
         });
-        setView({ name: "book-detail", book, copy, mode: "borrow" });
+        setView({
+          name: "book-detail",
+          book,
+          copy,
+          state: "available",
+        });
       }
     } catch {
       // Scanner closed by user, ignore
     }
-  }
-
-  // Check if a book copy is already borrowed by the user
-  function isBorrowedByUser(qrCodeId: string): boolean {
-    return loans.some((loan) => loan.qrCodeId === qrCodeId);
   }
 
   async function handleReturnScan(book: Book, copy: BookCopy) {
@@ -196,7 +200,12 @@ function MiniApp() {
             error instanceof Error ? error.message : "Failed to return book",
           buttons: [{ type: "ok" }],
         });
-        setView({ name: "book-detail", book, copy, mode: "return" });
+        setView({
+          name: "book-detail",
+          book,
+          copy,
+          state: "borrowed-by-user",
+        });
       }
     } catch {
       // Scanner closed by user, ignore
@@ -206,7 +215,6 @@ function MiniApp() {
   // Show loading state while scanning, borrowing, or returning
   if (
     view.name === "scanning" ||
-    view.name === "scanning-for-return" ||
     view.name === "borrowing" ||
     view.name === "returning"
   ) {
@@ -228,14 +236,13 @@ function MiniApp() {
 
   if (view.name === "book-detail") {
     return (
-      <BookDetailView
-        book={view.book}
-        copy={view.copy}
-        mode={view.mode}
-        isBorrowed={isBorrowedByUser(view.copy.qrCodeId)}
-        onScanLocation={() => handleLocationScan(view.book, view.copy)}
-        onScanReturn={() => handleReturnScan(view.book, view.copy)}
-      />
+        <BookDetailView
+          book={view.book}
+          copy={view.copy}
+          state={view.state}
+          onScanLocation={() => handleLocationScan(view.book, view.copy)}
+          onScanReturn={() => handleReturnScan(view.book, view.copy)}
+        />
     );
   }
 

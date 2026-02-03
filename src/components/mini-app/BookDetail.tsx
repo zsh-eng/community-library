@@ -3,8 +3,7 @@ import type { Book, BookCopy } from "@/types";
 type BookDetailProps = {
   book: Book;
   copy: BookCopy;
-  mode: "borrow" | "return";
-  isBorrowed: boolean;
+  state: "available" | "borrowed-by-user" | "borrowed-by-other";
   onScanLocation: () => void;
   onScanReturn: () => void;
 };
@@ -12,16 +11,10 @@ type BookDetailProps = {
 export function BookDetailView({
   book,
   copy,
-  mode,
-  isBorrowed,
+  state,
   onScanLocation,
   onScanReturn,
 }: BookDetailProps) {
-  // Check if the copy is available: no active loans and status is available
-  const hasActiveLoan = copy.loans.length > 0;
-  const unavailable =
-    copy.status !== "available" || hasActiveLoan || isBorrowed;
-
   return (
     <div className="flex min-h-screen flex-col bg-[var(--tg-theme-bg-color,#fff)] pt-16">
       {/* Content */}
@@ -58,7 +51,7 @@ export function BookDetailView({
           <MetaCard label="ISBN" value={book.isbn} />
           <MetaCard
             label="Status"
-            value={unavailable ? "Unavailable" : "Available"}
+            value={state === "available" ? "Available" : "Unavailable"}
           />
         </div>
 
@@ -75,7 +68,7 @@ export function BookDetailView({
 
       {/* Fixed action button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-[var(--tg-theme-bg-color,#fff)] from-60% to-transparent">
-        {mode === "return" ? (
+        {state === "borrowed-by-user" ? (
           <button
             onClick={onScanReturn}
             className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)]"
@@ -105,13 +98,11 @@ export function BookDetailView({
           </button>
         ) : (
           <button
-            disabled={unavailable}
+            disabled={state !== "available"}
             onClick={onScanLocation}
             className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)] bg-(--tg-theme-button-color,#5288c1) disabled:bg-(--tg-theme-button-color,#5288c1)/50"
           >
-            {isBorrowed ? (
-              "Already Borrowed"
-            ) : !hasActiveLoan && copy.status === "available" ? (
+            {state === "available" ? (
               <>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
