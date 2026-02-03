@@ -41,6 +41,12 @@
   /**
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/
+   *
+   * Required secrets:
+   * - BOT_TOKEN: Telegram bot token
+   * - ADMIN_GROUP_ID: Telegram group chat ID for admin authorization (e.g., "-100xxxxxxxxxx")
+   *   To get the group ID: Add @raw_data_bot to the admin group, it will show the chat ID.
+   *   Set via: wrangler secret put ADMIN_GROUP_ID
    */
   /**
    * Static Assets
