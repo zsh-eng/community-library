@@ -6,6 +6,8 @@ type BookDetailProps = {
   state: "available" | "borrowed-by-user" | "borrowed-by-other";
   onScanLocation: () => void;
   onScanReturn: () => void;
+  isAdmin?: boolean;
+  onViewAsAdmin?: () => void;
 };
 
 export function BookDetailView({
@@ -14,6 +16,8 @@ export function BookDetailView({
   state,
   onScanLocation,
   onScanReturn,
+  isAdmin,
+  onViewAsAdmin,
 }: BookDetailProps) {
   return (
     <div className="flex min-h-screen flex-col bg-[var(--tg-theme-bg-color,#fff)] pt-16">
@@ -60,6 +64,30 @@ export function BookDetailView({
           <p className="text-sm leading-relaxed text-[var(--tg-theme-text-color,#000)]">
             {book.description}
           </p>
+        )}
+
+        {/* Admin link */}
+        {isAdmin && onViewAsAdmin && (
+          <button
+            onClick={onViewAsAdmin}
+            className="flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-[var(--tg-theme-link-color,#5288c1)] bg-[var(--tg-theme-section-bg-color,#f4f4f5)]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            View as Admin
+          </button>
         )}
 
         {/* Spacer so content isn't hidden behind fixed button */}

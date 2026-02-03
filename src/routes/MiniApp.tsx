@@ -1,15 +1,20 @@
+import { AddCopyFlow } from "@/components/mini-app/AddCopyFlow";
+import { BookAdminView } from "@/components/mini-app/BookAdminView";
 import { BookDetailView } from "@/components/mini-app/BookDetail";
 import { BookNotFound } from "@/components/mini-app/BookNotFound";
 import { BorrowConfirmation } from "@/components/mini-app/BorrowConfirmation";
 import { ReturnConfirmation } from "@/components/mini-app/ReturnConfirmation";
 import { UserProfile } from "@/components/mini-app/UserProfile";
-import { useBookCopyLookup } from "@/hooks/use-book-query";
+import { useAddBookCopy } from "@/hooks/use-add-book-copy";
+import { useBookCopyLookup, useBookDetail } from "@/hooks/use-book-query";
 import { type BorrowResult, useBorrowBook } from "@/hooks/use-borrow-book";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { useLocations } from "@/hooks/use-locations";
 import { type ReturnResult, useReturnBook } from "@/hooks/use-return-book";
 import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { useUserLoans } from "@/hooks/use-user-loans";
 import { initTelegramSdk } from "@/lib/telegram";
-import type { Book, BookCopy } from "@/types";
+import type { Book, BookCopy, BookDetail, Location } from "@/types";
 import { classifyLocationScan, extractBookQrParam } from "@/lib/qr";
 import { backButton, popup, qrScanner } from "@telegram-apps/sdk-react";
 import { useEffect, useState } from "react";
@@ -28,7 +33,17 @@ type View =
   | { name: "borrow-confirmation"; result: BorrowResult; copy: BookCopy }
   | { name: "returning"; book: Book; copy: BookCopy }
   | { name: "return-confirmation"; result: ReturnResult; copy: BookCopy }
-  | { name: "book-not-found"; scannedText: string };
+  | { name: "book-not-found"; scannedText: string }
+  | { name: "book-admin"; bookId: number }
+  | {
+      name: "add-copy";
+      bookId: number;
+      book: Book;
+      step: "scan" | "location" | "confirm";
+      scannedQrId?: string;
+      selectedLocation?: Location;
+    }
+  | { name: "add-copy-success"; book: Book; copyNumber: number };
 
 function MiniApp() {
   const [ready, setReady] = useState(false);
@@ -43,10 +58,21 @@ function MiniApp() {
   }, []);
 
   const user = useTelegramUser();
+  const { data: currentUserData } = useCurrentUser();
+  const isAdmin = currentUserData?.isAdmin ?? false;
   const { data: loans = [], isLoading: loansLoading } = useUserLoans();
+  const { data: locations = [] } = useLocations();
   const borrowMutation = useBorrowBook();
   const returnMutation = useReturnBook();
+  const addCopyMutation = useAddBookCopy();
   const [view, setView] = useState<View>({ name: "home" });
+
+  // Fetch book detail for admin view
+  const adminBookId = view.name === "book-admin" ? view.bookId : null;
+  const addCopyBookId = view.name === "add-copy" ? view.bookId : null;
+  const { data: adminBook, isLoading: adminBookLoading } = useBookDetail(
+    adminBookId ?? addCopyBookId,
+  );
 
   // Telegram back button: show on all screens except home
   useEffect(() => {
@@ -246,6 +272,93 @@ function MiniApp() {
     }
   }
 
+  // Admin: navigate to admin view for a book
+  function handleViewAsAdmin(bookId: number) {
+    setView({ name: "book-admin", bookId });
+  }
+
+  // Admin: start add copy flow
+  function handleStartAddCopy(book: BookDetail) {
+    setView({
+      name: "add-copy",
+      bookId: book.id,
+      book,
+      step: "scan",
+    });
+  }
+
+  // Admin: scan QR for new copy
+  async function handleAddCopyScan() {
+    if (view.name !== "add-copy") return;
+
+    try {
+      const scanned = await qrScanner.open({
+        text: "Scan the QR sticker for the new book copy",
+        capture: () => true,
+      });
+
+      if (!scanned) return;
+
+      // For add copy flow, we accept raw QR codes (not book URLs)
+      const qrCodeId = scanned.trim();
+      if (!qrCodeId) {
+        popup.show({
+          title: "Invalid QR",
+          message: "Could not read QR code. Please try again.",
+          buttons: [{ type: "ok" }],
+        });
+        return;
+      }
+
+      setView({
+        ...view,
+        step: "location",
+        scannedQrId: qrCodeId,
+      });
+    } catch {
+      // Scanner closed by user, ignore
+    }
+  }
+
+  // Admin: select location for new copy
+  function handleSelectLocation(location: Location) {
+    if (view.name !== "add-copy") return;
+
+    setView({
+      ...view,
+      step: "confirm",
+      selectedLocation: location,
+    });
+  }
+
+  // Admin: confirm and create new copy
+  async function handleConfirmAddCopy() {
+    if (view.name !== "add-copy" || !view.scannedQrId || !view.selectedLocation)
+      return;
+
+    try {
+      const result = await addCopyMutation.mutateAsync({
+        bookId: view.bookId,
+        qrCodeId: view.scannedQrId,
+        locationId: view.selectedLocation.id,
+      });
+
+      if (result.success && result.copy) {
+        setView({
+          name: "add-copy-success",
+          book: view.book,
+          copyNumber: result.copy.copyNumber,
+        });
+      }
+    } catch (error) {
+      popup.show({
+        title: "Failed to Add Copy",
+        message: error instanceof Error ? error.message : "Failed to add copy",
+        buttons: [{ type: "ok" }],
+      });
+    }
+  }
+
   // Show loading state while scanning, borrowing, or returning
   if (
     view.name === "scanning" ||
@@ -270,13 +383,15 @@ function MiniApp() {
 
   if (view.name === "book-detail") {
     return (
-        <BookDetailView
-          book={view.book}
-          copy={view.copy}
-          state={view.state}
-          onScanLocation={() => handleLocationScan(view.book, view.copy)}
-          onScanReturn={() => handleReturnScan(view.book, view.copy)}
-        />
+      <BookDetailView
+        book={view.book}
+        copy={view.copy}
+        state={view.state}
+        onScanLocation={() => handleLocationScan(view.book, view.copy)}
+        onScanReturn={() => handleReturnScan(view.book, view.copy)}
+        isAdmin={isAdmin}
+        onViewAsAdmin={() => handleViewAsAdmin(view.book.id)}
+      />
     );
   }
 
@@ -306,6 +421,87 @@ function MiniApp() {
         onRetry={handleScannerOpen}
         onHome={() => setView({ name: "home" })}
       />
+    );
+  }
+
+  // Admin: Book admin view
+  if (view.name === "book-admin") {
+    if (adminBookLoading || !adminBook) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--tg-theme-bg-color,#fff)]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--tg-theme-button-color,#5288c1)] border-t-transparent" />
+            <p className="text-[var(--tg-theme-hint-color,#999)]">
+              Loading book...
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <BookAdminView
+        book={adminBook}
+        onAddCopy={() => handleStartAddCopy(adminBook)}
+        onBack={() => setView({ name: "home" })}
+      />
+    );
+  }
+
+  // Admin: Add copy flow
+  if (view.name === "add-copy") {
+    return (
+      <AddCopyFlow
+        book={view.book}
+        step={view.step}
+        scannedQrId={view.scannedQrId}
+        selectedLocation={view.selectedLocation}
+        locations={locations}
+        onScan={handleAddCopyScan}
+        onSelectLocation={handleSelectLocation}
+        onConfirm={handleConfirmAddCopy}
+        onCancel={() => setView({ name: "book-admin", bookId: view.bookId })}
+        isSubmitting={addCopyMutation.isPending}
+      />
+    );
+  }
+
+  // Admin: Add copy success
+  if (view.name === "add-copy-success") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--tg-theme-bg-color,#fff)] p-6">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="40"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#22c55e"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <div className="flex flex-col gap-2 text-center">
+          <h2 className="text-xl font-bold text-[var(--tg-theme-text-color,#000)]">
+            Copy Added!
+          </h2>
+          <p className="text-[var(--tg-theme-hint-color,#999)]">
+            Copy #{view.copyNumber} of "{view.book.title}" has been added to the
+            library.
+          </p>
+        </div>
+        <button
+          onClick={() => setView({ name: "book-admin", bookId: view.book.id })}
+          className="mt-4 w-full max-w-sm rounded-xl py-3.5 font-medium text-[var(--tg-theme-button-text-color,#fff)]"
+          style={{ backgroundColor: "var(--tg-theme-button-color, #5288c1)" }}
+        >
+          Back to Book
+        </button>
+      </div>
     );
   }
 
