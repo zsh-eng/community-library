@@ -121,7 +121,7 @@ function MiniApp() {
   async function handleLocationScan(book: Book, copy: BookCopy) {
     try {
       const scanned = await qrScanner.open({
-        text: `Scan the ${copy.location.name} location QR code`,
+        text: `Scan QR at 📍${copy.location.name} to borrow`,
         capture: () => true,
       });
 
@@ -166,7 +166,7 @@ function MiniApp() {
   async function handleReturnScan(book: Book, copy: BookCopy) {
     try {
       const scanned = await qrScanner.open({
-        text: `Scan the ${copy.location.name} location QR code to return`,
+        text: `Scan QR at 📍${copy.location.name} to return`,
         capture: () => true,
       });
 

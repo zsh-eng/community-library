@@ -100,7 +100,8 @@ export function BookDetailView({
               <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
               <rect x="7" y="7" width="10" height="10" rx="1" />
             </svg>
-            Scan Location to Return
+            Scan QR at
+            <span className="font-bold">{copy.location.name}</span> to return
           </button>
         ) : (
           <button
@@ -129,7 +130,9 @@ export function BookDetailView({
                   <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
                   <rect x="7" y="7" width="10" height="10" rx="1" />
                 </svg>
-                Scan Location to Borrow
+                Scan QR at
+                <span className="font-bold">{copy.location.name}</span> to
+                borrow
               </>
             ) : (
               "Currently Unavailable"
