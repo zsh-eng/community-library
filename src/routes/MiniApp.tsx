@@ -33,7 +33,12 @@ function MiniApp() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    initTelegramSdk().then(() => setReady(true));
+    initTelegramSdk().then((startParam) => {
+      setReady(true);
+      if (startParam) {
+        setView({ name: "scanning", qrCodeId: startParam });
+      }
+    });
   }, []);
 
   const user = useTelegramUser();

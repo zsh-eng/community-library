@@ -2,11 +2,12 @@ import {
   init,
   initData,
   miniApp,
+  retrieveLaunchParams,
   themeParams,
   viewport,
 } from "@telegram-apps/sdk-react";
 
-export async function initTelegramSdk(): Promise<void> {
+export async function initTelegramSdk(): Promise<string | null> {
   init();
 
   // Mount components. Each call is a no-op if unavailable.
@@ -42,4 +43,7 @@ export async function initTelegramSdk(): Promise<void> {
   if (miniApp.ready.isAvailable()) {
     miniApp.ready();
   }
+
+  const { tgWebAppData } = retrieveLaunchParams();
+  return tgWebAppData?.start_param || null;
 }
