@@ -1,7 +1,14 @@
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import * as schema from "../db/schema";
-import { borrowBook, getUserActiveLoans, returnBook } from "../lib/book";
+import {
+  addBookCopy,
+  borrowBook,
+  getAllLocations,
+  getUserActiveLoans,
+  returnBook,
+} from "../lib/book";
+import { adminCheck, requireAdmin } from "../middleware/admin-auth";
 import { telegramAuth } from "../middleware/telegram-auth";
 
 /**
@@ -13,6 +20,31 @@ import { telegramAuth } from "../middleware/telegram-auth";
  */
 export const miniApp = new Hono<{ Bindings: Env }>()
   .use("*", telegramAuth)
+  .get("/me", adminCheck, async (c) => {
+    const initData = c.get("initData");
+    const user = initData.user;
+    const isAdmin = c.get("isAdmin");
+
+    if (!user) {
+      return c.json({ error: "User not found in init data" }, 400);
+    }
+
+    return c.json({
+      user: {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        username: user.username,
+        photoUrl: user.photo_url,
+      },
+      isAdmin,
+    });
+  })
+  .get("/locations", async (c) => {
+    const db = drizzle(c.env.DATABASE, { schema });
+    const locations = await getAllLocations(db);
+    return c.json({ locations });
+  })
   .get("/loans", async (c) => {
     const initData = c.get("initData");
     const telegramUserId = initData.user?.id;
@@ -96,4 +128,29 @@ export const miniApp = new Hono<{ Bindings: Env }>()
       { success: false, error: result.error || "Failed to return book" },
       400,
     );
+  })
+  .post("/books/:bookId/copies", adminCheck, requireAdmin, async (c) => {
+    const { bookId } = c.req.param();
+    const body = await c.req.json<{ qrCodeId: string; locationId: number }>();
+
+    if (!body.qrCodeId || !body.locationId) {
+      return c.json(
+        { success: false, error: "qrCodeId and locationId are required" },
+        400,
+      );
+    }
+
+    const db = drizzle(c.env.DATABASE, { schema });
+    const result = await addBookCopy(
+      db,
+      parseInt(bookId),
+      body.locationId,
+      body.qrCodeId,
+    );
+
+    if (result.success) {
+      return c.json({ success: true, copy: result.copy });
+    }
+
+    return c.json({ success: false, error: result.error }, 400);
   });

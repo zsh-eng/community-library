@@ -1,7 +1,7 @@
-import { and, desc, eq, isNull, like, or } from "drizzle-orm";
+import { and, desc, eq, isNull, like, max, or } from "drizzle-orm";
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
-import { bookCopies, books, loans } from "../db/schema";
+import { bookCopies, books, loans, locations } from "../db/schema";
 
 // Type for database with schema
 export type Database = DrizzleD1Database<typeof schema>;
@@ -296,4 +296,79 @@ export async function getUserActiveLoans(db: Database, telegramUserId: number) {
     dueDate: loan.dueDate,
     imageUrl: loan.bookCopy.book.imageUrl,
   }));
+}
+
+/**
+ * Get all locations
+ */
+export async function getAllLocations(db: Database) {
+  return db.query.locations.findMany();
+}
+
+/**
+ * Add a new book copy
+ * Automatically assigns the next copy number for the book
+ */
+export async function addBookCopy(
+  db: Database,
+  bookId: number,
+  locationId: number,
+  qrCodeId: string,
+): Promise<
+  | { success: true; copy: { qrCodeId: string; copyNumber: number } }
+  | { success: false; error: string }
+> {
+  // Verify the book exists
+  const book = await db.query.books.findFirst({
+    where: eq(books.id, bookId),
+  });
+
+  if (!book) {
+    return { success: false, error: "Book not found" };
+  }
+
+  // Verify the location exists
+  const location = await db.query.locations.findFirst({
+    where: eq(locations.id, locationId),
+  });
+
+  if (!location) {
+    return { success: false, error: "Location not found" };
+  }
+
+  // Check if QR code is already in use
+  const existingCopy = await db.query.bookCopies.findFirst({
+    where: eq(bookCopies.qrCodeId, qrCodeId),
+  });
+
+  if (existingCopy) {
+    return { success: false, error: "QR code is already assigned to a book" };
+  }
+
+  // Get the next copy number for this book
+  const maxCopyResult = await db
+    .select({ maxCopyNumber: max(bookCopies.copyNumber) })
+    .from(bookCopies)
+    .where(eq(bookCopies.bookId, bookId));
+
+  const nextCopyNumber = (maxCopyResult[0]?.maxCopyNumber ?? 0) + 1;
+
+  // Insert the new copy
+  try {
+    await db.insert(bookCopies).values({
+      qrCodeId,
+      bookId,
+      locationId,
+      copyNumber: nextCopyNumber,
+      status: "available",
+    });
+
+    return {
+      success: true,
+      copy: { qrCodeId, copyNumber: nextCopyNumber },
+    };
+  } catch (error) {
+    console.error("Failed to add book copy:", error);
+    return { success: false, error: "Failed to add book copy" };
+  }
 }
