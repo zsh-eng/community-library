@@ -61,12 +61,11 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
    * (there's no specific bot command, the user needs to scan the QR code)
    */
   bot.command("start", async (ctx: Context) => {
-    await ctx.reply(WELCOME_MESSAGE, {
-      parse_mode: "MarkdownV2",
-    });
-
     const hiddenQuery = ctx.match?.toString().trim();
     if (!hiddenQuery) {
+      await ctx.reply(WELCOME_MESSAGE, {
+        parse_mode: "MarkdownV2",
+      });
       return;
     }
 
