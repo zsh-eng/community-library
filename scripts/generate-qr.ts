@@ -16,14 +16,16 @@ function generateCode(length = 6): string {
 }
 
 function generateQrUrl(copyId: string): string {
-  return `https://t.me/nusc_library_bot?start=borrow_${copyId}`;
+  return `https://t.me/nusc_library_bot?startapp=${copyId}`;
 }
 
 async function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-    console.error("Usage: bun run scripts/generate-qr.ts <count> <output-file>");
+    console.error(
+      "Usage: bun run scripts/generate-qr.ts <count> <output-file>",
+    );
     console.error("Example: bun run scripts/generate-qr.ts 500 qr-codes.txt");
     process.exit(1);
   }
