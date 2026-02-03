@@ -13,9 +13,9 @@ import { useLocations } from "@/hooks/use-locations";
 import { type ReturnResult, useReturnBook } from "@/hooks/use-return-book";
 import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { useUserLoans } from "@/hooks/use-user-loans";
+import { classifyLocationScan, extractBookQrParam } from "@/lib/qr";
 import { initTelegramSdk } from "@/lib/telegram";
 import type { Book, BookCopy, BookDetail, Location } from "@/types";
-import { classifyLocationScan, extractBookQrParam } from "@/lib/qr";
 import { backButton, popup, qrScanner } from "@telegram-apps/sdk-react";
 import { useEffect, useState } from "react";
 import "../mini-app.css";
@@ -38,12 +38,12 @@ type View =
   | {
       name: "add-copy";
       bookId: number;
-      book: Book;
+      book: BookDetail;
       step: "scan" | "location" | "confirm";
       scannedQrId?: string;
       selectedLocation?: Location;
     }
-  | { name: "add-copy-success"; book: Book; copyNumber: number };
+  | { name: "add-copy-success"; book: BookDetail; copyNumber: number };
 
 function MiniApp() {
   const [ready, setReady] = useState(false);
@@ -305,6 +305,19 @@ function MiniApp() {
         popup.show({
           title: "Invalid QR",
           message: "Could not read QR code. Please try again.",
+          buttons: [{ type: "ok" }],
+        });
+        return;
+      }
+
+      const matchingCopies = view.book.bookCopies.filter(
+        (copy) => copy.qrCodeId === qrCodeId,
+      );
+      if (matchingCopies.length === 1) {
+        const existingCopy = matchingCopies[0];
+        popup.show({
+          title: "Copy Already Exists",
+          message: `Copy #${existingCopy.copyNumber} already uses this QR code. Please scan a new sticker.`,
           buttons: [{ type: "ok" }],
         });
         return;

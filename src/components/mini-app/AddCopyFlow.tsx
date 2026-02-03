@@ -1,4 +1,4 @@
-import type { Location, Book } from "@/types";
+import type { Book, Location } from "@/types";
 
 type AddCopyFlowProps = {
   book: Book;
@@ -40,17 +40,30 @@ export function AddCopyFlow({
 
         {/* Progress indicator */}
         <div className="flex items-center gap-2">
-          <StepIndicator step={1} current={step === "scan"} done={!!scannedQrId} label="Scan QR" />
+          <StepIndicator
+            step={1}
+            current={step === "scan"}
+            done={!!scannedQrId}
+            label="Scan QR"
+          />
           <div className="h-px flex-1 bg-[var(--tg-theme-section-separator-color,#e0e0e0)]" />
-          <StepIndicator step={2} current={step === "location"} done={!!selectedLocation} label="Location" />
+          <StepIndicator
+            step={2}
+            current={step === "location"}
+            done={!!selectedLocation}
+            label="Location"
+          />
           <div className="h-px flex-1 bg-[var(--tg-theme-section-separator-color,#e0e0e0)]" />
-          <StepIndicator step={3} current={step === "confirm"} done={false} label="Confirm" />
+          <StepIndicator
+            step={3}
+            current={step === "confirm"}
+            done={false}
+            label="Confirm"
+          />
         </div>
 
         {/* Step content */}
-        {step === "scan" && (
-          <ScanStep onScan={onScan} />
-        )}
+        {step === "scan" && <ScanStep onScan={onScan} />}
 
         {step === "location" && (
           <LocationStep
