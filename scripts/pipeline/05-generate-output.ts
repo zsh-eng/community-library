@@ -29,6 +29,9 @@ const LOCATION_MAP_LOCAL: Record<string, number> = {
 const IMAGE_CDN_BASE_LOCAL =
   "https://cdn.jsdelivr.net/gh/zsh-eng/community-library-images@main/assets/covers";
 
+// Batch size for INSERT statements (SQLite has statement length limits)
+const INSERT_BATCH_SIZE = 50;
+
 /**
  * Generate a random 6-character alphanumeric string (uppercase)
  */
@@ -71,29 +74,36 @@ function assignBookIds(books: MasterBook[]): FinalBook[] {
 }
 
 /**
- * Generate books SQL insert statement
+ * Generate books SQL insert statements (batched to avoid SQLite statement length limits)
  */
 function generateBooksSql(books: FinalBook[]): string {
   if (books.length === 0) {
     return "-- No books to insert\n";
   }
 
-  const values = books
-    .map((book) => {
-      const isbn = escapeSql(book.isbn);
-      const title = escapeSql(book.title);
-      const description = escapeSql(book.description);
-      const author = escapeSql(book.author);
-      const imageUrl = escapeSql(book.image_url);
+  const statements: string[] = [];
+  statements.push(`-- Insert books (${books.length} unique books by ISBN)`);
 
-      return `  (${book.id}, '${isbn}', '${title}', '${description}', '${author}', '${imageUrl}', strftime('%s', 'now'))`;
-    })
-    .join(",\n");
+  // Split into batches
+  for (let i = 0; i < books.length; i += INSERT_BATCH_SIZE) {
+    const batch = books.slice(i, i + INSERT_BATCH_SIZE);
+    const values = batch
+      .map((book) => {
+        const isbn = escapeSql(book.isbn);
+        const title = escapeSql(book.title);
+        const description = escapeSql(book.description);
+        const author = escapeSql(book.author);
+        const imageUrl = escapeSql(book.image_url);
 
-  return `-- Insert books (${books.length} unique books by ISBN)
-INSERT INTO books (id, isbn, title, description, author, image_url, created_at) VALUES
-${values};
-`;
+        return `  (${book.id}, '${isbn}', '${title}', '${description}', '${author}', '${imageUrl}', strftime('%s', 'now'))`;
+      })
+      .join(",\n");
+
+    statements.push(`INSERT INTO books (id, isbn, title, description, author, image_url, created_at) VALUES
+${values};`);
+  }
+
+  return statements.join("\n\n") + "\n";
 }
 
 /**
@@ -110,23 +120,30 @@ function generateDevCopies(books: FinalBook[]): BookCopy[] {
 }
 
 /**
- * Generate copies SQL insert statement
+ * Generate copies SQL insert statements (batched to avoid SQLite statement length limits)
  */
 function generateCopiesSql(copies: BookCopy[]): string {
   if (copies.length === 0) {
     return "-- No copies to insert\n";
   }
 
-  const values = copies
-    .map((copy) => {
-      return `  ('${copy.qr_code_id}', ${copy.book_id}, ${copy.copy_number}, '${copy.status}', ${copy.location_id})`;
-    })
-    .join(",\n");
+  const statements: string[] = [];
+  statements.push(`-- Insert book copies (${copies.length} copies for development/testing)`);
 
-  return `-- Insert book copies (${copies.length} copies for development/testing)
-INSERT INTO book_copies (qr_code_id, book_id, copy_number, status, location_id) VALUES
-${values};
-`;
+  // Split into batches
+  for (let i = 0; i < copies.length; i += INSERT_BATCH_SIZE) {
+    const batch = copies.slice(i, i + INSERT_BATCH_SIZE);
+    const values = batch
+      .map((copy) => {
+        return `  ('${copy.qr_code_id}', ${copy.book_id}, ${copy.copy_number}, '${copy.status}', ${copy.location_id})`;
+      })
+      .join(",\n");
+
+    statements.push(`INSERT INTO book_copies (qr_code_id, book_id, copy_number, status, location_id) VALUES
+${values};`);
+  }
+
+  return statements.join("\n\n") + "\n";
 }
 
 /**
