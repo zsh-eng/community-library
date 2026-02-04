@@ -1,3 +1,4 @@
+import { extractBookCodeFromLink } from "@shared/qr";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import * as schema from "../db/schema";
@@ -10,37 +11,6 @@ import {
 } from "../lib/book";
 import { adminCheck, requireAdmin } from "../middleware/admin-auth";
 import { telegramAuth } from "../middleware/telegram-auth";
-
-const BOOK_QR_PREFIX = "COPY-";
-const BOOK_QR_CODE_LENGTH = 6;
-const BOOK_QR_CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const BOOK_QR_CODE_REGEX = new RegExp(
-  `^${BOOK_QR_PREFIX}[${BOOK_QR_CHARSET}]{${BOOK_QR_CODE_LENGTH}}$`,
-);
-
-function extractBookCodeFromLink(text: string): string | null {
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-  if (!/(^|\/\/)t\.me\//i.test(trimmed)) return null;
-
-  try {
-    const url = new URL(
-      trimmed.startsWith("http") ? trimmed : `https://${trimmed}`,
-    );
-    const startapp = url.searchParams.get("startapp");
-    if (!startapp) return null;
-    const code = startapp.trim();
-    return BOOK_QR_CODE_REGEX.test(code) ? code : null;
-  } catch {
-    const queryIndex = trimmed.indexOf("?");
-    const query = queryIndex >= 0 ? trimmed.slice(queryIndex + 1) : trimmed;
-    const params = new URLSearchParams(query);
-    const startapp = params.get("startapp");
-    if (!startapp) return null;
-    const code = startapp.trim();
-    return BOOK_QR_CODE_REGEX.test(code) ? code : null;
-  }
-}
 
 /**
  * Mini App API routes.
