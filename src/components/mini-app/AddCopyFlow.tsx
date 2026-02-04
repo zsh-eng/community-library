@@ -3,7 +3,7 @@ import type { Book, Location } from "@/types";
 type AddCopyFlowProps = {
   book: Book;
   step: "scan" | "location" | "confirm";
-  scannedQrId?: string;
+  scannedQrCode?: string;
   selectedLocation?: Location;
   locations: Location[];
   onScan: () => void;
@@ -16,7 +16,7 @@ type AddCopyFlowProps = {
 export function AddCopyFlow({
   book,
   step,
-  scannedQrId,
+  scannedQrCode,
   selectedLocation,
   locations,
   onScan,
@@ -43,7 +43,7 @@ export function AddCopyFlow({
           <StepIndicator
             step={1}
             current={step === "scan"}
-            done={!!scannedQrId}
+            done={!!scannedQrCode}
             label="Scan QR"
           />
           <div className="h-px flex-1 bg-[var(--tg-theme-section-separator-color,#e0e0e0)]" />
@@ -68,7 +68,7 @@ export function AddCopyFlow({
         {step === "location" && (
           <LocationStep
             locations={locations}
-            scannedQrId={scannedQrId}
+            scannedQrCode={scannedQrCode}
             onSelectLocation={onSelectLocation}
           />
         )}
@@ -76,7 +76,7 @@ export function AddCopyFlow({
         {step === "confirm" && (
           <ConfirmStep
             book={book}
-            scannedQrId={scannedQrId!}
+            scannedQrCode={scannedQrCode!}
             location={selectedLocation!}
             onConfirm={onConfirm}
             isSubmitting={isSubmitting}
@@ -203,20 +203,20 @@ function ScanStep({ onScan }: { onScan: () => void }) {
 
 function LocationStep({
   locations,
-  scannedQrId,
+  scannedQrCode,
   onSelectLocation,
 }: {
   locations: Location[];
-  scannedQrId?: string;
+  scannedQrCode?: string;
   onSelectLocation: (location: Location) => void;
 }) {
   return (
     <div className="flex flex-col gap-4">
       {/* Show scanned QR code */}
-      {scannedQrId && (
+      {scannedQrCode && (
         <div className="rounded-xl bg-green-50 p-3">
           <p className="text-xs text-green-600">QR Code scanned:</p>
-          <p className="font-mono text-sm text-green-800">{scannedQrId}</p>
+          <p className="font-mono text-sm text-green-800">{scannedQrCode}</p>
         </div>
       )}
 
@@ -258,13 +258,13 @@ function LocationStep({
 
 function ConfirmStep({
   book,
-  scannedQrId,
+  scannedQrCode,
   location,
   onConfirm,
   isSubmitting,
 }: {
   book: Book;
-  scannedQrId: string;
+  scannedQrCode: string;
   location: Location;
   onConfirm: () => void;
   isSubmitting?: boolean;
@@ -289,7 +289,7 @@ function ConfirmStep({
             QR Code
           </span>
           <span className="text-sm font-mono text-[var(--tg-theme-text-color,#000)]">
-            {scannedQrId.substring(0, 12)}...
+            {scannedQrCode}
           </span>
         </div>
         <div className="flex justify-between border-t border-[var(--tg-theme-section-separator-color,#e0e0e0)] py-2">

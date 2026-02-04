@@ -14,7 +14,12 @@ import { useLocations } from "@/hooks/use-locations";
 import { type ReturnResult, useReturnBook } from "@/hooks/use-return-book";
 import { useTelegramUser } from "@/hooks/use-telegram-user";
 import { useUserLoans } from "@/hooks/use-user-loans";
-import { classifyLocationScan, extractBookQrParam } from "@/lib/qr";
+import {
+  classifyLocationScan,
+  extractBookQrParam,
+  isValidBookCode,
+  parseBookQrLink,
+} from "@/lib/qr";
 import { initTelegramSdk } from "@/lib/telegram";
 import type { Book, BookCopy, BookDetail, Location } from "@/types";
 import { backButton, popup, qrScanner } from "@telegram-apps/sdk-react";
@@ -42,7 +47,8 @@ type View =
       bookId: number;
       book: BookDetail;
       step: "scan" | "location" | "confirm";
-      scannedQrId?: string;
+      scannedQrCode?: string;
+      scannedQrRaw?: string;
       selectedLocation?: Location;
     }
   | { name: "add-copy-success"; book: BookDetail; copyNumber: number };
@@ -332,19 +338,29 @@ function MiniApp() {
 
       if (!scanned) return;
 
-      // For add copy flow, we accept raw QR codes (not book URLs)
-      const qrCodeId = scanned.trim();
-      if (!qrCodeId) {
+      const trimmed = scanned.trim();
+      if (isValidBookCode(trimmed)) {
+        popup.show({
+          title: "Full Link Required",
+          message:
+            "This looks like a code only. Scan the full t.me/...startapp=COPY-... link instead.",
+          buttons: [{ type: "ok" }],
+        });
+        return;
+      }
+      const parsedQr = parseBookQrLink(trimmed);
+      if (!parsedQr) {
         popup.show({
           title: "Invalid QR",
-          message: "Could not read QR code. Please try again.",
+          message:
+            "This QR code doesn't look like a book link. Scan the sticker link that starts with t.me/ and includes startapp=COPY-...",
           buttons: [{ type: "ok" }],
         });
         return;
       }
 
       const matchingCopies = view.book.bookCopies.filter(
-        (copy) => copy.qrCodeId === qrCodeId,
+        (copy) => copy.qrCodeId === parsedQr.code,
       );
       if (matchingCopies.length === 1) {
         const existingCopy = matchingCopies[0];
@@ -359,7 +375,8 @@ function MiniApp() {
       setView({
         ...view,
         step: "location",
-        scannedQrId: qrCodeId,
+        scannedQrCode: parsedQr.code,
+        scannedQrRaw: parsedQr.raw,
       });
     } catch {
       // Scanner closed by user, ignore
@@ -379,13 +396,18 @@ function MiniApp() {
 
   // Admin: confirm and create new copy
   async function handleConfirmAddCopy() {
-    if (view.name !== "add-copy" || !view.scannedQrId || !view.selectedLocation)
+    if (
+      view.name !== "add-copy" ||
+      !view.scannedQrCode ||
+      !view.scannedQrRaw ||
+      !view.selectedLocation
+    )
       return;
 
     try {
       const result = await addCopyMutation.mutateAsync({
         bookId: view.bookId,
-        qrCodeId: view.scannedQrId,
+        qrCodeId: view.scannedQrRaw,
         locationId: view.selectedLocation.id,
       });
 
@@ -509,7 +531,7 @@ function MiniApp() {
       <AddCopyFlow
         book={view.book}
         step={view.step}
-        scannedQrId={view.scannedQrId}
+        scannedQrCode={view.scannedQrCode}
         selectedLocation={view.selectedLocation}
         locations={locations}
         onScan={handleAddCopyScan}

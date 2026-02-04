@@ -37,6 +37,21 @@ export function extractBookQrParam(text: string): string {
   }
 }
 
+export function parseBookQrLink(
+  text: string,
+): { raw: string; code: string } | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  const code = extractBookQrParam(trimmed);
+  if (!code) return null;
+
+  const hasTelegramLink = /(^|\/\/)t\.me\//i.test(trimmed);
+  if (!hasTelegramLink) return null;
+
+  return { raw: trimmed, code };
+}
+
 export function isBookQr(text: string): boolean {
   return extractBookQrParam(text) !== "";
 }
