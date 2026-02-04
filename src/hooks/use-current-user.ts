@@ -42,5 +42,8 @@ export function useCurrentUser() {
       return data as { user: CurrentUser; isAdmin: boolean };
     },
     enabled: !!user?.id && !!initDataRaw,
+    // Admin data is basically static data
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

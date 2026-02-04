@@ -34,5 +34,8 @@ export function useLocations() {
       return data.locations as Location[];
     },
     enabled: !!initDataRaw,
+    // Locations are basically static data
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
