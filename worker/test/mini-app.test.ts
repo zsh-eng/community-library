@@ -179,6 +179,8 @@ describe("mini app api", () => {
       author: "Author",
     });
 
+    const validQrLink = "https://t.me/library_bot?startapp=COPY-ABCDEF";
+
     const initData = makeInitData(
       { id: 999, first_name: "Jo", username: "jo" },
       botToken,
@@ -192,7 +194,7 @@ describe("mini app api", () => {
           ...makeAuthHeader(initData),
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ qrCodeId: "copy-3", locationId: 1 }),
+        body: JSON.stringify({ qrCodeId: validQrLink, locationId: 1 }),
       },
     );
 
@@ -202,7 +204,79 @@ describe("mini app api", () => {
       copy?: { qrCodeId: string; copyNumber: number };
     };
     expect(data.success).toBe(true);
-    expect(data.copy?.qrCodeId).toBe("copy-3");
+    expect(data.copy?.qrCodeId).toBe("COPY-ABCDEF");
     expect(data.copy?.copyNumber).toBe(1);
+  });
+
+  it("rejects add book copy when qrCodeId is not a Telegram startapp link", async () => {
+    const book = await seedBook({
+      isbn: "isbn-901",
+      title: "Book D",
+      description: "Test",
+      author: "Author",
+    });
+
+    const initData = makeInitData(
+      { id: 999, first_name: "Jo", username: "jo" },
+      botToken,
+    );
+
+    const response = await SELF.fetch(
+      `http://example.com/api/miniapp/books/${book.id}/copies`,
+      {
+        method: "POST",
+        headers: {
+          ...makeAuthHeader(initData),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qrCodeId: "https://example.com?startapp=COPY-ABCDEF",
+          locationId: 1,
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { success: boolean; error: string };
+    expect(data.success).toBe(false);
+    expect(data.error).toBe(
+      "qrCodeId must be the full Telegram mini app link including startapp=COPY-...",
+    );
+  });
+
+  it("rejects add book copy when startapp code is invalid", async () => {
+    const book = await seedBook({
+      isbn: "isbn-902",
+      title: "Book E",
+      description: "Test",
+      author: "Author",
+    });
+
+    const initData = makeInitData(
+      { id: 999, first_name: "Jo", username: "jo" },
+      botToken,
+    );
+
+    const response = await SELF.fetch(
+      `http://example.com/api/miniapp/books/${book.id}/copies`,
+      {
+        method: "POST",
+        headers: {
+          ...makeAuthHeader(initData),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qrCodeId: "https://t.me/library_bot?startapp=COPY-ABCDE",
+          locationId: 1,
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { success: boolean; error: string };
+    expect(data.success).toBe(false);
+    expect(data.error).toBe(
+      "qrCodeId must be the full Telegram mini app link including startapp=COPY-...",
+    );
   });
 });
