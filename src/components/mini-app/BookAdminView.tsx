@@ -39,7 +39,7 @@ export function BookAdminView({ book, onAddCopy, onBack }: BookAdminViewProps) {
 
         {/* Description */}
         {book.description && (
-          <p className="text-sm leading-relaxed text-[var(--tg-theme-text-color,#000)]">
+          <p className="text-sm leading-relaxed text-[var(--tg-theme-text-color,#000)] line-clamp-6">
             {book.description}
           </p>
         )}
@@ -145,7 +145,7 @@ function CopyRow({ copy, index }: { copy: BookCopy; index: number }) {
           )}
         </div>
         <span className="text-xs text-[var(--tg-theme-hint-color,#999)] font-mono">
-          {copy.qrCodeId.substring(0, 8)}...
+          {copy.qrCodeId}
         </span>
       </div>
     </>
