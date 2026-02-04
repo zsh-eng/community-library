@@ -2,6 +2,7 @@ import { AddCopyFlow } from "@/components/mini-app/AddCopyFlow";
 import { BookAdminView } from "@/components/mini-app/BookAdminView";
 import { BookDetailView } from "@/components/mini-app/BookDetail";
 import { BookNotFound } from "@/components/mini-app/BookNotFound";
+import { BooksListView } from "@/components/mini-app/BooksListView";
 import { BorrowConfirmation } from "@/components/mini-app/BorrowConfirmation";
 import { ReturnConfirmation } from "@/components/mini-app/ReturnConfirmation";
 import { UserProfile } from "@/components/mini-app/UserProfile";
@@ -34,6 +35,7 @@ type View =
   | { name: "returning"; book: Book; copy: BookCopy }
   | { name: "return-confirmation"; result: ReturnResult; copy: BookCopy }
   | { name: "book-not-found"; scannedText: string }
+  | { name: "books-list" }
   | { name: "book-admin"; bookId: number }
   | {
       name: "add-copy";
@@ -445,6 +447,15 @@ function MiniApp() {
     );
   }
 
+  // Admin: Books list view
+  if (view.name === "books-list") {
+    return (
+      <BooksListView
+        onSelectBook={(bookId) => setView({ name: "book-admin", bookId })}
+      />
+    );
+  }
+
   // Admin: Book admin view
   if (view.name === "book-admin") {
     if (adminBookLoading || !adminBook) {
@@ -464,7 +475,7 @@ function MiniApp() {
       <BookAdminView
         book={adminBook}
         onAddCopy={() => handleStartAddCopy(adminBook)}
-        onBack={() => setView({ name: "home" })}
+        onBack={() => setView({ name: "books-list" })}
       />
     );
   }
@@ -561,6 +572,29 @@ function MiniApp() {
             Scan Book QR Code
           </button>
         </div>
+
+        {/* Admin: Browse All Books button */}
+        {isAdmin && (
+          <button
+            onClick={() => setView({ name: "books-list" })}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-medium text-[var(--tg-theme-button-color,#5288c1)] bg-[var(--tg-theme-section-bg-color,#f4f4f5)]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+            </svg>
+            Browse All Books
+          </button>
+        )}
 
         {/* Borrowed books list */}
         <div className="flex flex-col gap-3 mt-4">
