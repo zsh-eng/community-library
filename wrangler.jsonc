@@ -47,6 +47,8 @@
    * - ADMIN_GROUP_ID: Telegram group chat ID for admin authorization (e.g., "-100xxxxxxxxxx")
    *   To get the group ID: Add @raw_data_bot to the admin group, it will show the chat ID.
    *   Set via: wrangler secret put ADMIN_GROUP_ID
+   // MINIAPP_URL: URL for the Telegram Mini App to enable the "Manage Book" button for admins
+   // Example: "https://t.me/zsheng_library_dev_bot/library"
    */
   /**
    * Static Assets
