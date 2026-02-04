@@ -1,5 +1,5 @@
 import { SELF } from "cloudflare:test";
-import { describe, beforeEach, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   makeAuthHeader,
   makeInitData,
@@ -45,10 +45,7 @@ describe("mini app api", () => {
   });
 
   it("returns locations", async () => {
-    const initData = makeInitData(
-      { id: 123, first_name: "Ada" },
-      botToken,
-    );
+    const initData = makeInitData({ id: 123, first_name: "Ada" }, botToken);
 
     const response = await SELF.fetch(
       "http://example.com/api/miniapp/locations",
@@ -64,10 +61,7 @@ describe("mini app api", () => {
   });
 
   it("returns active loans for user", async () => {
-    const initData = makeInitData(
-      { id: 321, first_name: "Linus" },
-      botToken,
-    );
+    const initData = makeInitData({ id: 321, first_name: "Linus" }, botToken);
 
     const response = await SELF.fetch("http://example.com/api/miniapp/loans", {
       headers: makeAuthHeader(initData),
@@ -87,7 +81,6 @@ describe("mini app api", () => {
     const data = (await response.json()) as { error: string };
     expect(data.error).toBe("Invalid init data");
   });
-
 
   it("borrows a book copy", async () => {
     const book = await seedBook({
@@ -206,6 +199,107 @@ describe("mini app api", () => {
     expect(data.success).toBe(true);
     expect(data.copy?.qrCodeId).toBe("COPY-ABCDEF");
     expect(data.copy?.copyNumber).toBe(1);
+  });
+
+  it("rejects add book copy when book does not exist", async () => {
+    const initData = makeInitData(
+      { id: 999, first_name: "Jo", username: "jo" },
+      botToken,
+    );
+
+    const response = await SELF.fetch(
+      "http://example.com/api/miniapp/books/999999/copies",
+      {
+        method: "POST",
+        headers: {
+          ...makeAuthHeader(initData),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qrCodeId: "https://t.me/library_bot?startapp=COPY-BCDEFG",
+          locationId: 1,
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { success: boolean; error: string };
+    expect(data.success).toBe(false);
+    expect(data.error).toBe("Book not found");
+  });
+
+  it("rejects add book copy when location does not exist", async () => {
+    const book = await seedBook({
+      isbn: "isbn-790",
+      title: "Book F",
+      description: "Test",
+      author: "Author",
+    });
+
+    const initData = makeInitData(
+      { id: 999, first_name: "Jo", username: "jo" },
+      botToken,
+    );
+
+    const response = await SELF.fetch(
+      `http://example.com/api/miniapp/books/${book.id}/copies`,
+      {
+        method: "POST",
+        headers: {
+          ...makeAuthHeader(initData),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qrCodeId: "https://t.me/library_bot?startapp=COPY-CDEFGH",
+          locationId: 999,
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { success: boolean; error: string };
+    expect(data.success).toBe(false);
+    expect(data.error).toBe("Location not found");
+  });
+
+  it("rejects add book copy when qr code is already assigned", async () => {
+    const book = await seedBook({
+      isbn: "isbn-791",
+      title: "Book G",
+      description: "Test",
+      author: "Author",
+    });
+    await seedBookCopy({
+      qrCodeId: "COPY-BCDFGH",
+      bookId: book.id,
+      locationId: 1,
+      copyNumber: 1,
+    });
+
+    const initData = makeInitData(
+      { id: 999, first_name: "Jo", username: "jo" },
+      botToken,
+    );
+
+    const response = await SELF.fetch(
+      `http://example.com/api/miniapp/books/${book.id}/copies`,
+      {
+        method: "POST",
+        headers: {
+          ...makeAuthHeader(initData),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qrCodeId: "https://t.me/library_bot?startapp=COPY-BCDFGH",
+          locationId: 1,
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { success: boolean; error: string };
+    expect(data.success).toBe(false);
+    expect(data.error).toBe("QR code is already assigned to a book");
   });
 
   it("rejects add book copy when qrCodeId is not a Telegram startapp link", async () => {
