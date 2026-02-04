@@ -9,6 +9,12 @@ export default defineWorkersProject(async () => {
   const migrations = await readD1Migrations(migrationsPath);
 
   return {
+    resolve: {
+      alias: {
+        "@shared": path.join(__dirname, "shared"),
+        "@": path.join(__dirname, "src"),
+      },
+    },
     test: {
       pool: "@cloudflare/vitest-pool-workers" as const,
       globals: true,

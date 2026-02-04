@@ -1,9 +1,19 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@/*": ["./src/*"],
+    },
     "module": "ESNext",
     "moduleResolution": "bundler",
     "types": ["@cloudflare/vitest-pool-workers"],
   },
-  "include": ["./**/*.ts", "../../worker-configuration.d.ts", "./**/*.d.ts"],
+  "include": [
+    "./**/*.ts",
+    "../../worker-configuration.d.ts",
+    "./**/*.d.ts",
+    "../../shared",
+  ],
 }
