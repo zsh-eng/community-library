@@ -52,7 +52,15 @@ function MiniApp() {
     initTelegramSdk().then((startParam) => {
       setReady(true);
       if (startParam) {
-        setView({ name: "scanning", qrCodeId: startParam });
+        // Check if it's an admin view request (format: admin_<bookId>)
+        const adminMatch = startParam.match(/^admin_(\d+)$/);
+        if (adminMatch) {
+          const bookId = parseInt(adminMatch[1], 10);
+          setView({ name: "book-admin", bookId });
+        } else {
+          // Treat as QR code ID (existing behavior)
+          setView({ name: "scanning", qrCodeId: startParam });
+        }
       }
     });
   }, []);

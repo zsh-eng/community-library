@@ -1,6 +1,6 @@
 import { CommandGroup } from "@grammyjs/commands";
 import { drizzle } from "drizzle-orm/d1";
-import { Bot, Context, webhookCallback } from "grammy";
+import { Bot, Context, InlineKeyboard, webhookCallback } from "grammy";
 import { Hono } from "hono";
 import {
   BOOK_DETAILS_ERROR,
@@ -17,6 +17,7 @@ import {
   WELCOME_MESSAGE,
 } from "./bot/format-message";
 import * as schema from "./db/schema";
+import { isUserAdmin } from "./lib/admin";
 import { getBookDetails, getUserActiveLoans, searchBooks } from "./lib/book";
 
 // ============================================================================
@@ -75,13 +76,32 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
 
         const message = formatBookDetailsMessage(bookDetails);
 
+        // Check if user is admin to show manage button
+        let keyboard: InlineKeyboard | undefined;
+        if (ctx.from && c.env.MINIAPP_URL) {
+          const userIsAdmin = await isUserAdmin(
+            c.env.BOT_TOKEN,
+            c.env.ADMIN_GROUP_ID,
+            ctx.from.id,
+          );
+          if (userIsAdmin) {
+            const url = `${c.env.MINIAPP_URL}?startapp=admin_${bookDetails.id}`;
+            console.log("The URL ", url);
+            keyboard = new InlineKeyboard().url("Manage Book", url);
+          }
+        }
+
         if (bookDetails.imageUrl) {
           await ctx.replyWithPhoto(bookDetails.imageUrl, {
             caption: message,
             parse_mode: "MarkdownV2",
+            reply_markup: keyboard,
           });
         } else {
-          await ctx.reply(message, { parse_mode: "MarkdownV2" });
+          await ctx.reply(message, {
+            parse_mode: "MarkdownV2",
+            reply_markup: keyboard,
+          });
         }
       } catch (error) {
         console.error("Error fetching book details:", error);
