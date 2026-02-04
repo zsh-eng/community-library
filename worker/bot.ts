@@ -140,7 +140,7 @@ export const botApp = new Hono<{ Bindings: Env }>().post("/", async (c) => {
 
   bot.on("message", async (ctx) => {
     const query = ctx.message?.text?.trim();
-    if (!query || query.startsWith("/") || query.length < 3) {
+    if (!query || query.startsWith("/") || query.length < 2) {
       return;
     }
 
