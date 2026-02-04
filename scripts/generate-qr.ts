@@ -5,12 +5,17 @@
  * Example: bun run scripts/generate-qr.ts 500 qr-codes.txt
  */
 
-const CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed ambiguous chars: 0, O, I, 1
+import {
+  BOOK_QR_CHARSET,
+  BOOK_QR_CODE_LENGTH,
+  BOOK_QR_PREFIX,
+  isValidBookCode,
+} from "../src/lib/qr";
 
-function generateCode(length = 6): string {
+function generateCode(length = BOOK_QR_CODE_LENGTH): string {
   let code = "";
   for (let i = 0; i < length; i++) {
-    code += CHARSET[Math.floor(Math.random() * CHARSET.length)];
+    code += BOOK_QR_CHARSET[Math.floor(Math.random() * BOOK_QR_CHARSET.length)];
   }
   return code;
 }
@@ -42,7 +47,11 @@ async function main() {
 
   // Generate unique codes
   while (codes.size < count) {
-    codes.add(`COPY-${generateCode()}`);
+    const code = `${BOOK_QR_PREFIX}${generateCode()}`;
+    if (!isValidBookCode(code)) {
+      throw new Error(`Generated invalid book code: ${code}`);
+    }
+    codes.add(code);
   }
 
   // Generate URLs
