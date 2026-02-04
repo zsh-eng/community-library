@@ -1,6 +1,8 @@
+import { zValidator } from "@hono/zod-validator";
 import { extractBookCodeFromLink } from "@shared/qr";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
+import { z } from "zod";
 import * as schema from "../db/schema";
 import {
   addBookCopy,
@@ -130,40 +132,61 @@ export const miniApp = new Hono<{ Bindings: Env }>()
       400,
     );
   })
-  .post("/books/:bookId/copies", adminCheck, requireAdmin, async (c) => {
-    const { bookId } = c.req.param();
-    const body = await c.req.json<{ qrCodeId: string; locationId: number }>();
+  .post(
+    "/books/:bookId/copies",
+    adminCheck,
+    requireAdmin,
+    zValidator(
+      "json",
+      z.object({
+        qrCodeId: z
+          .string()
+          .min(1, "qrCodeId and locationId are required")
+          .transform((value, ctx) => {
+            const extractedCode = extractBookCodeFromLink(value);
+            if (!extractedCode) {
+              ctx.addIssue({
+                code: "custom",
+                message:
+                  "qrCodeId must be the full Telegram mini app link including startapp=COPY-...",
+              });
+              return z.NEVER;
+            }
+            return extractedCode;
+          }),
+        locationId: z
+          .number()
+          .int()
+          .positive("qrCodeId and locationId are required"),
+      }),
+      (result, c) => {
+        if (!result.success) {
+          return c.json(
+            {
+              success: false,
+              error: result.error.issues[0]?.message ?? "Invalid request body",
+            },
+            400,
+          );
+        }
+      },
+    ),
+    async (c) => {
+      const { bookId } = c.req.param();
+      const body = c.req.valid("json");
 
-    if (!body.qrCodeId || !body.locationId) {
-      return c.json(
-        { success: false, error: "qrCodeId and locationId are required" },
-        400,
+      const db = drizzle(c.env.DATABASE, { schema });
+      const result = await addBookCopy(
+        db,
+        parseInt(bookId),
+        body.locationId,
+        body.qrCodeId,
       );
-    }
 
-    const extractedCode = extractBookCodeFromLink(body.qrCodeId);
-    if (!extractedCode) {
-      return c.json(
-        {
-          success: false,
-          error:
-            "qrCodeId must be the full Telegram mini app link including startapp=COPY-...",
-        },
-        400,
-      );
-    }
+      if (result.success) {
+        return c.json({ success: true, copy: result.copy });
+      }
 
-    const db = drizzle(c.env.DATABASE, { schema });
-    const result = await addBookCopy(
-      db,
-      parseInt(bookId),
-      body.locationId,
-      extractedCode,
-    );
-
-    if (result.success) {
-      return c.json({ success: true, copy: result.copy });
-    }
-
-    return c.json({ success: false, error: result.error }, 400);
-  });
+      return c.json({ success: false, error: result.error }, 400);
+    },
+  );
