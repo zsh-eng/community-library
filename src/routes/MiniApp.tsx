@@ -89,7 +89,30 @@ function MiniApp() {
     if (!backButton.mount.isAvailable()) return;
     backButton.mount();
 
-    const goHome = () => setView({ name: "home" });
+    const goBack = () => {
+      switch (view.name) {
+        case "book-admin":
+          setView({ name: "books-list" });
+          return;
+        case "add-copy":
+          setView({ name: "book-admin", bookId: view.bookId });
+          return;
+        case "add-copy-success":
+          setView({ name: "book-admin", bookId: view.book.id });
+          return;
+        case "books-list":
+        case "book-detail":
+        case "book-not-found":
+        case "borrow-confirmation":
+        case "return-confirmation":
+        case "scanning":
+        case "borrowing":
+        case "returning":
+        case "home":
+        default:
+          setView({ name: "home" });
+      }
+    };
 
     if (view.name === "home") {
       backButton.hide();
@@ -97,12 +120,12 @@ function MiniApp() {
       backButton.show();
     }
 
-    const off = backButton.onClick(goHome);
+    const off = backButton.onClick(goBack);
     return () => {
       off();
       backButton.hide();
     };
-  }, [view.name]);
+  }, [view]);
 
   // Fetch book copy when scanning
   const scanningQrCode = view.name === "scanning" ? view.qrCodeId : null;
