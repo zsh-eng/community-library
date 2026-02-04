@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest --run",
+    "test:watch": "vitest",
     "preview": "bun run build && vite preview",
     "deploy": "bun run build && wrangler deploy",
     "cf-typegen": "wrangler types"
@@ -74,6 +76,7 @@
     "@ai-sdk/google": "^2.0.23",
     "@ai-sdk/xai": "^2.0.27",
     "@cloudflare/vite-plugin": "^1.13.13",
+    "@cloudflare/vitest-pool-workers": "^0.12.9",
     "@eslint/js": "^9.33.0",
     "@google/genai": "^1.27.0",
     "@libsql/client": "^0.15.15",
@@ -83,6 +86,8 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/runner": "3.2.0",
+    "@vitest/snapshot": "3.2.0",
     "ai": "^5.0.78",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.5",
@@ -94,6 +99,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",
+    "vitest": "3.2.0",
     "wrangler": "^4.43.0"
   }
 }
